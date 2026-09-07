@@ -12,7 +12,7 @@ use log::{info, warn};
 use redlib::client::{canonical_path, proxy, rate_limit_check, CLIENT};
 use redlib::server::{self, RequestExt};
 use redlib::utils::{error, redirect, ThemeAssets};
-use redlib::{config, duplicates, headers, instance_info, post, search, settings, subreddit, user};
+use redlib::{api, config, duplicates, headers, instance_info, post, search, settings, subreddit, user};
 
 use redlib::client::OAUTH_CLIENT;
 
@@ -257,6 +257,11 @@ async fn main() {
 		.at("/check_update.js")
 		.get(|_| resource(include_str!("../static/check_update.js"), "text/javascript", false).boxed());
 	app.at("/copy.js").get(|_| resource(include_str!("../static/copy.js"), "text/javascript", false).boxed());
+
+	// Read-only Reddit JSON API for the JavaScript frontend.
+	// Opt-in via REDLIB_ENABLE_JSON_API=on; see src/api.rs.
+	app.at("/api/reddit/*path").get(|r| api::reddit_json(r).boxed());
+	app.at("/api/reddit/*path").options(|r| api::preflight(r).boxed());
 
 	app.at("/commits.atom").get(|_| async move { proxy_commit_info().await }.boxed());
 	app.at("/instances.json").get(|_| async move { proxy_instances().await }.boxed());
