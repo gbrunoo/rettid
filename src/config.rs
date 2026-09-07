@@ -108,6 +108,18 @@ pub struct Config {
 
 	#[serde(rename = "REDLIB_DEFAULT_REMOVE_DEFAULT_FEEDS")]
 	pub(crate) default_remove_default_feeds: Option<String>,
+
+	/// Set to "on" to expose the read-only Reddit JSON API under /api/reddit/.
+	/// Off by default: it serves the same public data as the HTML frontend, but
+	/// spends this instance's Reddit rate limit, so it is opt-in.
+	#[serde(rename = "REDLIB_ENABLE_JSON_API")]
+	pub(crate) enable_json_api: Option<String>,
+
+	/// Value for Access-Control-Allow-Origin on /api/reddit/ responses.
+	/// Unset means no CORS header, i.e. same-origin browsers only. Set this to
+	/// the frontend's origin (e.g. http://localhost:5173) for local development.
+	#[serde(rename = "REDLIB_API_CORS_ORIGIN")]
+	pub(crate) api_cors_origin: Option<String>,
 }
 
 impl Config {
@@ -156,6 +168,8 @@ impl Config {
 			enable_rss: parse("REDLIB_ENABLE_RSS"),
 			full_url: parse("REDLIB_FULL_URL"),
 			default_remove_default_feeds: parse("REDLIB_DEFAULT_REMOVE_DEFAULT_FEEDS"),
+			enable_json_api: parse("REDLIB_ENABLE_JSON_API"),
+			api_cors_origin: parse("REDLIB_API_CORS_ORIGIN"),
 		}
 	}
 }
@@ -186,6 +200,8 @@ fn get_setting_from_config(name: &str, config: &Config) -> Option<String> {
 		"REDLIB_ENABLE_RSS" => config.enable_rss.clone(),
 		"REDLIB_FULL_URL" => config.full_url.clone(),
 		"REDLIB_DEFAULT_REMOVE_DEFAULT_FEEDS" => config.default_remove_default_feeds.clone(),
+		"REDLIB_ENABLE_JSON_API" => config.enable_json_api.clone(),
+		"REDLIB_API_CORS_ORIGIN" => config.api_cors_origin.clone(),
 		_ => None,
 	}
 }

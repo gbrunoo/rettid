@@ -281,6 +281,11 @@ impl Route<'_> {
 	pub fn post(&mut self, dest: fn(Request<Body>) -> BoxResponse) -> &mut Self {
 		self.method(&Method::POST, dest)
 	}
+
+	/// Add an endpoint for `OPTIONS` requests, used for CORS preflight
+	pub fn options(&mut self, dest: fn(Request<Body>) -> BoxResponse) -> &mut Self {
+		self.method(&Method::OPTIONS, dest)
+	}
 }
 
 impl Default for Server {
