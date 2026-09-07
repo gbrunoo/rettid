@@ -1,24 +1,59 @@
 {
+	"id": "/",
 	"name": "Redlib",
 	"short_name": "Redlib",
-	"display": "standalone",
-	"background_color": "#1f1f1f",
 	"description": "An alternative private front-end to Reddit",
-	"theme_color": "#1f1f1f",
+	"lang": "en",
+	"dir": "ltr",
 	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"display_override": ["standalone", "minimal-ui", "browser"],
+	"orientation": "any",
+	"background_color": "#1f1f1f",
+	"theme_color": "#1f1f1f",
+	"categories": ["news", "social"],
+	"prefer_related_applications": false,
 	"icons": [
 		{
 			"src": "logo.png",
 			"sizes": "512x512",
-			"type": "image/png"
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "logo.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
 		},
 		{
 			"src": "apple-touch-icon.png",
-			"sizes": "180x180"
+			"sizes": "180x180",
+			"type": "image/png",
+			"purpose": "any"
 		},
 		{
 			"src": "favicon.ico",
 			"sizes": "32x32"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "Popular",
+			"url": "/r/popular"
+		},
+		{
+			"name": "All",
+			"url": "/r/all"
+		},
+		{
+			"name": "Search",
+			"url": "/search"
+		},
+		{
+			"name": "Settings",
+			"url": "/settings"
 		}
 	]
 }

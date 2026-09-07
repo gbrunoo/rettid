@@ -1,0 +1,15 @@
+/* Voyager light theme — iOS system light palette */
+.voyagerLight {
+	--accent: #007aff;
+	--green: #34c759;
+	--text: #000000;
+	--foreground: #e5e5ea;
+	--background: #f2f2f7;
+	--outside: #ffffff;
+	--post: #ffffff;
+	--panel-border: 1px solid #d1d1d6;
+	--highlighted: #e5e5ea;
+	--visited: #8e8e93;
+	--shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+	--spoiler: #c7c7cc;
+}

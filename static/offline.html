@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+		<title>Offline — Redlib</title>
+		<link rel="stylesheet" type="text/css" href="/style.css">
+		<style>
+			#offline {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 14px;
+				box-sizing: border-box;
+				min-height: 80vh;
+				padding: 40px calc(16px + env(safe-area-inset-right, 0px)) 40px calc(16px + env(safe-area-inset-left, 0px));
+				text-align: center;
+			}
+
+			#offline svg {
+				width: 64px;
+				height: 64px;
+				color: var(--accent);
+			}
+
+			#offline h1 {
+				margin: 0;
+				font-size: 22px;
+				font-weight: 700;
+				letter-spacing: -0.02em;
+			}
+
+			#offline p {
+				max-width: 34ch;
+				margin: 0;
+				opacity: 0.65;
+				line-height: 1.5;
+			}
+
+			#offline a.retry {
+				display: inline-block;
+				margin-top: 6px;
+				padding: 11px 22px;
+				border-radius: 999px;
+				background: var(--accent);
+				font-size: 15px;
+				font-weight: 600;
+				color: var(--background);
+			}
+		</style>
+	</head>
+	<body>
+		<main id="offline">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+				<path d="M1 1l22 22"/>
+				<path d="M16.7 11.1A6.5 6.5 0 0 1 21 13"/>
+				<path d="M3 13a10.9 10.9 0 0 1 5.2-2.8"/>
+				<path d="M6.1 9.1A15 15 0 0 1 12 7c1.2 0 2.4.1 3.5.4"/>
+				<path d="M9 16.5a4 4 0 0 1 5.3-.4"/>
+				<path d="M12 20h.01"/>
+			</svg>
+			<h1>You're offline</h1>
+			<p>Redlib can't reach the network right now. Pages you've already visited are still available.</p>
+			<a class="retry" href="/">Try again</a>
+		</main>
+	</body>
+</html>

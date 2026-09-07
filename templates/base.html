@@ -7,16 +7,28 @@
 		<title>{% block title %}Redlib{% endblock %}</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<meta name="description" content="View on Redlib, an alternative private front-end to Reddit.">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 		{% if crate::utils::disable_indexing() %}
 		<meta name="robots" content="noindex, nofollow">
 		{% endif %}
 		<!-- General PWA -->
+		{% if prefs.layout == "voyager" %}
+		{# Match the voyager palette so the status bar blends with the app. #}
+		<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+		<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+		{% else %}
 		<meta name="theme-color" content="#1F1F1F">
+		{% endif %}
 		<!-- iOS Application -->
 		<meta name="apple-mobile-web-app-title" content="Redlib">
 		<meta name="apple-mobile-web-app-capable" content="yes">
+		{# The voyager layout draws its own bars and honours safe-area insets,
+		   so it can take over the status bar area for an edge-to-edge look. #}
+		{% if prefs.layout == "voyager" %}
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+		{% else %}
 		<meta name="apple-mobile-web-app-status-bar-style" content="default">
+		{% endif %}
 		<!-- Android -->
 		<meta name="mobile-web-app-capable" content="yes">
 		<!-- iOS Logo -->
@@ -27,6 +39,9 @@
 		<link rel="manifest" type="application/json" href="/manifest.json">
 		<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"> 
 		<link rel="stylesheet" type="text/css" href="/style.css?v={{ env!("CARGO_PKG_VERSION") }}">
+		{% if prefs.layout == "voyager" %}
+		<link rel="stylesheet" type="text/css" href="/voyager.css?v={{ env!("CARGO_PKG_VERSION") }}">
+		{% endif %}
 		<!-- Video quality -->
 		<div id="video_quality" data-value="{{ prefs.video_quality }}"></div>
 		{% endblock %}
@@ -81,5 +96,44 @@
 				</div>
 			</footer>
 		{% endblock %}
+
+		<!-- BOTTOM TAB BAR (voyager layout only) -->
+		{% if prefs.layout == "voyager" %}
+		<nav id="v_tabbar" aria-label="Primary">
+			<a href="/" {% if url == "/" %}class="selected" aria-current="page"{% endif %}>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/>
+				</svg>
+				<span>Home</span>
+			</a>
+			<a href="/r/popular" {% if url.starts_with("/r/popular") %}class="selected" aria-current="page"{% endif %}>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<path d="M13 2.5c.5 4-2.5 5-3.5 7.5-1 2.5.5 4 .5 4s-2-.5-2.5-2.5C6 13.5 5 15.5 5 17a7 7 0 0 0 14 0c0-5-3-8.5-6-14.5z"/>
+				</svg>
+				<span>Popular</span>
+			</a>
+			<a href="/r/all" {% if url.starts_with("/r/all") %}class="selected" aria-current="page"{% endif %}>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="12" cy="12" r="9"/><path d="M3.5 9h17M3.5 15h17M12 3c-3 3-3 15 0 18M12 3c3 3 3 15 0 18"/>
+				</svg>
+				<span>All</span>
+			</a>
+			<a href="/search" {% if url.starts_with("/search") %}class="selected" aria-current="page"{% endif %}>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/>
+				</svg>
+				<span>Search</span>
+			</a>
+			<a href="/settings" {% if url.starts_with("/settings") %}class="selected" aria-current="page"{% endif %}>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+				</svg>
+				<span>Settings</span>
+			</a>
+		</nav>
+		{% endif %}
+
+		<!-- PWA SERVICE WORKER -->
+		<script src="/register_sw.js" defer></script>
 	</body>
 </html>
