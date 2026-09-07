@@ -21,6 +21,14 @@
 			{% else %}
 				<span class="comment_author {{ author.distinguished }}">u/[deleted]</span>
 			{% endif %}
+			{# The voyager layout shows the score inline beside the author. The
+			   score in .comment_left stays put for the other layouts, which
+			   render it as a left-hand column. #}
+			{% if prefs.layout == "voyager" %}
+			<span class="comment_score_inline" title="{{ score.1 }}">
+				{% if prefs.hide_score != "on" %}{{ score.0 }}{% else %}&#x2022;{% endif %}
+			</span>
+			{% endif %}
 			{% if author.flair.flair_parts.len() > 0 %}
 				<small class="author_flair">{% call utils::render_flair(author.flair.flair_parts) %}</small>
 			{% endif %}

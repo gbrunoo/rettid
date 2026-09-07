@@ -52,6 +52,10 @@ body.voyager {
 	background: var(--background);
 	font-size: 15px;
 	line-height: 1.4;
+	/* The base sheet reserves space for a fixed navbar. This layout's top bar
+	   is sticky, so it sits in flow and that reservation would just leave a
+	   dead strip above it. */
+	padding-top: 0;
 	padding-bottom: calc(var(--v-tabbar-height) + var(--v-safe-bottom));
 	-webkit-font-smoothing: antialiased;
 	-webkit-tap-highlight-color: transparent;
@@ -61,6 +65,17 @@ body.voyager {
 
 body.voyager a {
 	-webkit-touch-callout: none;
+}
+
+/* The base sheet sizes several components as content-box with a percentage
+   width (.prefs-group is `width: 100%`), so any padding this layout adds
+   pushes them past their container. Border-box throughout avoids having to
+   compensate rule by rule. */
+body.voyager,
+body.voyager *,
+body.voyager *::before,
+body.voyager *::after {
+	box-sizing: border-box;
 }
 
 /* Kill the desktop shadows / borders the base sheet applies. */
@@ -74,12 +89,19 @@ body.voyager details.panel {
  * Top bar: translucent, blurred, hairline bottom border
  * ------------------------------------------------------------------ */
 
-body.voyager nav {
+/* `:not(#v_tabbar)` matters: the bottom tab bar is also a <nav>, and without
+   this it would inherit `top: 0` from here and render at the top of the
+   viewport, covering this bar. */
+body.voyager nav:not(#v_tabbar) {
 	position: sticky;
 	top: 0;
 	z-index: 50;
 	display: flex;
 	align-items: center;
+	/* Wrap rather than overflow: the search form has no natural minimum, so
+	   without this it pushes #links off-screen and widens the layout viewport,
+	   which knocks the fixed tab bar out of alignment. */
+	flex-wrap: wrap;
 	gap: 10px;
 	box-sizing: border-box;
 	width: 100%;
@@ -95,7 +117,7 @@ body.voyager nav {
 }
 
 @supports ((-webkit-backdrop-filter: none) or (backdrop-filter: none)) {
-	body.voyager nav {
+	body.voyager nav:not(#v_tabbar) {
 		-webkit-backdrop-filter: var(--v-blur);
 		backdrop-filter: var(--v-blur);
 	}
@@ -103,6 +125,7 @@ body.voyager nav {
 
 body.voyager nav #logo {
 	display: flex;
+	flex: 0 0 auto;
 	align-items: center;
 	gap: 8px;
 	margin: 0;
@@ -116,9 +139,12 @@ body.voyager nav #redlib {
 
 body.voyager nav #links {
 	display: flex;
+	flex: 0 0 auto;
 	align-items: center;
 	gap: 4px;
 	margin-left: auto;
+	/* Stay on the first row, beside the logo. */
+	order: 2;
 }
 
 /* Icon-only actions in the bar, like a UINavigationBar. */
@@ -185,8 +211,22 @@ body.voyager #feeds[open] > summary::after {
 	transform: translateY(1px) rotate(225deg);
 }
 
-/* Popover sheet, iOS context-menu flavoured. */
-body.voyager #feed_list {
+/* A closed <details> only hides children that are in flow. Making the panel
+   absolutely positioned takes it out of flow, so it has to be hidden
+   explicitly — otherwise it paints over the top bar while closed. */
+body.voyager #feeds > #feed_list {
+	display: none;
+}
+
+body.voyager #feeds[open] > #feed_list {
+	display: block;
+}
+
+/* Popover sheet, iOS context-menu flavoured.
+   `:not(.helper)` because settings.html reuses both #feeds and #feed_list for
+   the "Why?" HLS explainer (an upstream duplicate-id bug), and that one should
+   stay inline prose rather than become a floating panel. */
+body.voyager #feeds > #feed_list:not(.helper) {
 	position: absolute;
 	top: calc(100% + 8px);
 	left: 0;
@@ -202,7 +242,7 @@ body.voyager #feed_list {
 	-webkit-overflow-scrolling: touch;
 }
 
-body.voyager #feed_list > p {
+body.voyager #feeds > #feed_list:not(.helper) > p {
 	margin: 8px 10px 4px;
 	font-size: 11px;
 	font-weight: 700;
@@ -211,7 +251,7 @@ body.voyager #feed_list > p {
 	text-transform: uppercase;
 }
 
-body.voyager #feed_list > a {
+body.voyager #feeds > #feed_list:not(.helper) > a {
 	display: block;
 	padding: 9px 10px;
 	border-radius: 8px;
@@ -219,10 +259,27 @@ body.voyager #feed_list > a {
 	color: var(--text);
 }
 
-body.voyager #feed_list > a.selected {
+body.voyager #feeds > #feed_list:not(.helper) > a.selected {
 	background: var(--v-faint);
 	color: var(--accent);
 	font-weight: 600;
+}
+
+/* The base sheet's max-width:800px block nests offsets inside
+   `body.fixed_navbar` to push content clear of the fixed navbar
+   (`div.post.highlighted { margin-top: 49px }` and friends). This layout's bar
+   is sticky and therefore already in flow, so those offsets render as dead
+   gaps. Neutralising them needs selectors that out-specify
+   `body.fixed_navbar <thing>`, hence the leading `html`. */
+@media screen and (max-width: 800px) {
+	html body.voyager.fixed_navbar div.post.highlighted,
+	html body.voyager.fixed_navbar #subreddit,
+	html body.voyager.fixed_navbar #user,
+	html body.voyager.fixed_navbar #settings,
+	html body.voyager.fixed_navbar #sort,
+	html body.voyager.fixed_navbar main:not(:has(div + aside)) #sort {
+		margin-top: 0;
+	}
 }
 
 /* ------------------------------------------------------------------
@@ -246,9 +303,49 @@ body.voyager #column_one {
 	border-radius: 0;
 }
 
-/* Sort options become a scrollable segmented control. */
-body.voyager #sort,
+/* The comment sort and comment search are two separate forms that both reuse
+   id="sort" (upstream duplicate id). Stack them, and keep each one on a single
+   row so the submit button stays beside its control instead of wrapping. */
 body.voyager #commentQueryForms {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px calc(var(--v-gutter) + var(--v-safe-right)) 10px
+		calc(var(--v-gutter) + var(--v-safe-left));
+}
+
+body.voyager #commentQueryForms > form {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	background: none;
+	border: none;
+	box-shadow: none;
+}
+
+body.voyager #comment_count {
+	flex: 0 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+body.voyager #commentQueryForms select {
+	flex: 0 1 auto;
+	min-width: 0;
+}
+
+body.voyager .commentQuery {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+/* Sort options become a scrollable segmented control. */
+body.voyager #sort {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -448,8 +545,8 @@ body.voyager .post_thumbnail.no_thumbnail svg {
 
 /* Full-bleed media for image and video posts. */
 body.voyager .post_media_content {
-	margin: 9px calc(-1 * (var(--v-gutter) + var(--v-safe-left))) 2px
-		calc(-1 * (var(--v-gutter) + var(--v-safe-right)));
+	margin: 9px calc(-1 * (var(--v-gutter) + var(--v-safe-right))) 2px
+		calc(-1 * (var(--v-gutter) + var(--v-safe-left)));
 	grid-area: post_media;
 }
 
@@ -492,6 +589,10 @@ body.voyager .post_preview {
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 3;
 }
+
+/* Note: the body container is omitted by the template when the post has no
+   text (see post_in_list). A CSS :empty rule cannot do this job, because the
+   template's own newlines count as text nodes. */
 
 body.voyager .highlighted .post_body {
 	font-size: 15px;
@@ -646,6 +747,8 @@ body.voyager .thread {
 		calc(var(--v-gutter) + var(--v-safe-left));
 	background: var(--post);
 	border-bottom: 1px solid var(--v-hairline);
+	/* Clips the full-width comment separators, which deliberately overflow. */
+	overflow: hidden;
 }
 
 @media screen and (min-width: 620px) {
@@ -657,13 +760,27 @@ body.voyager .thread {
 }
 
 body.voyager .comment {
+	position: relative;
 	margin: 0;
 	padding: 10px 0;
-	font-size: 14.5px;
+	font-size: 15px;
 }
 
-body.voyager .thread > .comment:not(:last-child) {
-	border-bottom: 1px solid var(--v-hairline);
+/* Separators span the full width of the thread regardless of nesting depth.
+   A plain border would start at the comment's own indent, so the rule is drawn
+   by an overflowing pseudo-element that .thread clips. */
+body.voyager .comment::after {
+	content: "";
+	position: absolute;
+	right: -100vw;
+	bottom: 0;
+	left: -100vw;
+	height: 1px;
+	background: var(--v-hairline);
+}
+
+body.voyager .comment:last-child::after {
+	display: none;
 }
 
 body.voyager .comment_left {
@@ -672,69 +789,39 @@ body.voyager .comment_left {
 	align-items: flex-start;
 }
 
-/* The rail is the only depth cue, as in Voyager. */
-body.voyager .comment_left .line {
-	width: 2px;
-	margin: 4px 0 0 3px;
-	border-radius: 2px;
-	background: var(--v-rail-1);
-	opacity: 0.55;
-}
-
+/* Score moves into the header for this layout (see comment.html). */
 body.voyager .comment_score {
 	display: none;
 }
 
-body.voyager .comment_data {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 0 6px;
-	font-size: 13px;
-	color: var(--v-muted);
-	cursor: pointer;
+/* Top-level comments get no rail; colour starts at the first level of
+   nesting, so the rail always means "this is a reply". */
+body.voyager .comment_left .line {
+	width: 3px;
+	margin: 2px 0 0;
+	border-radius: 3px;
+	background: var(--v-rail-1);
 }
 
-body.voyager .comment_author {
-	font-weight: 600;
-	color: var(--text);
-}
-
-body.voyager .comment_author.op {
-	color: var(--v-op);
-}
-
-body.voyager .comment_body {
-	margin: 3px 0 0;
-	font-size: 14.5px;
-	line-height: 1.45;
-	color: var(--text);
-}
-
-body.voyager .replies {
-	margin: 6px 0 0;
-	padding: 0 0 0 11px;
+body.voyager .thread > .comment > .comment_left .line {
+	display: none;
 }
 
 /* Cycle rail colours by nesting depth. */
-body.voyager .replies .comment_left .line {
+body.voyager .replies .replies .comment_left .line {
 	background: var(--v-rail-2);
 }
 
-body.voyager .replies .replies .comment_left .line {
+body.voyager .replies .replies .replies .comment_left .line {
 	background: var(--v-rail-3);
 }
 
-body.voyager .replies .replies .replies .comment_left .line {
+body.voyager .replies .replies .replies .replies .comment_left .line {
 	background: var(--v-rail-4);
 }
 
-body.voyager .replies .replies .replies .replies .comment_left .line {
-	background: var(--v-rail-5);
-}
-
 body.voyager .replies .replies .replies .replies .replies .comment_left .line {
-	background: var(--v-rail-6);
+	background: var(--v-rail-5);
 }
 
 body.voyager
@@ -746,7 +833,111 @@ body.voyager
 	.replies
 	.comment_left
 	.line {
-	background: var(--v-rail-1);
+	background: var(--v-rail-6);
+}
+
+body.voyager .comment_data {
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 0 6px;
+	font-size: 14px;
+	color: var(--v-muted);
+	cursor: pointer;
+	list-style: none;
+}
+
+body.voyager .comment_data::-webkit-details-marker {
+	display: none;
+}
+
+body.voyager .comment_author {
+	flex: 0 1 auto;
+	overflow: hidden;
+	font-weight: 600;
+	color: var(--text);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+body.voyager .comment_author.op {
+	color: var(--v-op);
+}
+
+/* Score beside the author, with the same arrow used on posts. */
+body.voyager .comment_score_inline {
+	display: inline-flex;
+	flex: 0 0 auto;
+	align-items: center;
+	gap: 3px;
+	font-size: 13.5px;
+	font-weight: 500;
+	color: var(--v-muted);
+	white-space: nowrap;
+}
+
+body.voyager .comment_score_inline::before {
+	content: "";
+	width: 11px;
+	height: 11px;
+	background: currentColor;
+	-webkit-mask: var(--v-arrow-up) center / contain no-repeat;
+	mask: var(--v-arrow-up) center / contain no-repeat;
+}
+
+/* Timestamp pinned to the trailing edge, with a collapse chevron. */
+body.voyager .comment_data > .created {
+	flex: 0 0 auto;
+	margin-left: auto;
+	font-size: 13.5px;
+	color: var(--v-muted);
+	white-space: nowrap;
+}
+
+body.voyager .comment_data::after {
+	content: "";
+	flex: 0 0 auto;
+	width: 7px;
+	height: 7px;
+	margin-left: 2px;
+	border-right: 1.6px solid var(--v-muted);
+	border-bottom: 1.6px solid var(--v-muted);
+	transform: translateY(-2px) rotate(45deg);
+	opacity: 0.7;
+}
+
+body.voyager details.comment_right[open] > .comment_data::after {
+	transform: translateY(1px) rotate(225deg);
+}
+
+body.voyager .comment_data > .edited {
+	flex: 0 0 auto;
+	font-size: 12.5px;
+	font-style: italic;
+	color: var(--v-muted);
+}
+
+body.voyager .comment_body {
+	margin: 4px 0 0;
+	font-size: 15px;
+	line-height: 1.45;
+	color: var(--text);
+}
+
+/* The markdown renderer emits sibling paragraphs with no spacing of their own. */
+body.voyager .comment_body > p + p {
+	margin-top: 0.65em;
+}
+
+body.voyager .replies {
+	margin: 6px 0 0;
+	padding: 0 0 0 14px;
+}
+
+/* Nested comments carry their own separators, so the last reply in a branch
+   must not also draw the parent's. */
+body.voyager .replies > .comment:last-child::after {
+	display: none;
 }
 
 body.voyager .deeper_replies {
@@ -777,6 +968,7 @@ body.voyager #searchbox {
 	box-sizing: border-box;
 	width: 100%;
 	max-width: 100%;
+	min-width: 0;
 	margin: 0;
 	padding: 8px calc(var(--v-gutter) + var(--v-safe-right)) 8px
 		calc(var(--v-gutter) + var(--v-safe-left));
@@ -784,6 +976,25 @@ body.voyager #searchbox {
 	background: none;
 	box-shadow: none;
 	grid-area: unset;
+}
+
+/* Inside the top bar it takes a full row of its own, below logo and links. */
+body.voyager nav:not(#v_tabbar) #searchbox {
+	flex: 1 1 100%;
+	order: 3;
+	padding-top: 0;
+	padding-bottom: 6px;
+}
+
+/* "in /r/subreddit" must not compete with the input for space. */
+body.voyager #inside {
+	display: flex;
+	flex: 0 0 auto;
+	align-items: center;
+	gap: 5px;
+	font-size: 13px;
+	color: var(--v-muted);
+	white-space: nowrap;
 }
 
 body.voyager #searchbox #search,
@@ -811,14 +1022,6 @@ body.voyager #sort_submit {
 	border-radius: var(--v-radius);
 	background: var(--accent);
 	color: var(--background);
-}
-
-body.voyager #inside {
-	display: flex;
-	align-items: center;
-	gap: 5px;
-	font-size: 13px;
-	color: var(--v-muted);
 }
 
 /* ------------------------------------------------------------------
@@ -905,19 +1108,21 @@ body.voyager .prefs {
 	box-shadow: none;
 }
 
+/* A <legend> cannot be positioned outside its <fieldset>'s border, so the
+   fieldset itself is left transparent and the card is drawn on the run of
+   .prefs-group rows instead. That puts the caption above the card, as in an
+   iOS grouped table. */
 body.voyager .prefs fieldset {
 	margin: 0 0 22px;
 	padding: 0;
-	border: 1px solid var(--v-hairline);
-	border-radius: var(--v-radius-lg);
-	background: var(--post);
-	overflow: hidden;
+	border: none;
+	background: none;
 }
 
-/* Section captions sit outside the card, uppercase and small. */
 body.voyager .prefs legend {
-	float: left;
-	width: 100%;
+	display: block;
+	float: none;
+	width: auto;
 	margin: 0 0 6px;
 	padding: 0 4px;
 	border: none;
@@ -928,27 +1133,36 @@ body.voyager .prefs legend {
 	text-transform: uppercase;
 }
 
-body.voyager .prefs legend + * {
-	clear: both;
-}
-
 body.voyager .prefs-group {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
+	width: 100%;
 	min-height: 44px;
+	/* The base sheet pins this to 35px, too short for a 44px touch target. */
+	height: auto;
 	margin: 0;
 	padding: 7px 14px;
+	background: var(--post);
 	border-bottom: 1px solid var(--v-hairline);
 }
 
-body.voyager .prefs-group:last-child {
-	border-bottom: none;
+/* Round only the ends of each run, so the rows read as one card. */
+body.voyager .prefs fieldset > .prefs-group:first-of-type {
+	border-top: 1px solid var(--v-hairline);
+	border-top-left-radius: var(--v-radius-lg);
+	border-top-right-radius: var(--v-radius-lg);
+}
+
+body.voyager .prefs fieldset > .prefs-group:last-of-type {
+	border-bottom-left-radius: var(--v-radius-lg);
+	border-bottom-right-radius: var(--v-radius-lg);
 }
 
 body.voyager .prefs-group > label {
 	flex: 1 1 auto;
+	min-width: 0;
 	margin: 0;
 	font-size: 15px;
 	color: var(--text);
@@ -956,7 +1170,12 @@ body.voyager .prefs-group > label {
 
 body.voyager .prefs select,
 body.voyager .prefs-group select {
-	max-width: 58%;
+	/* Must be allowed to shrink, or long option labels (e.g. "voyagerDark")
+	   push the control past the edge of the card and get clipped. */
+	flex: 0 1 auto;
+	width: auto;
+	min-width: 0;
+	max-width: 52%;
 	margin: 0;
 	padding: 6px 8px;
 	border: none;
@@ -965,6 +1184,7 @@ body.voyager .prefs-group select {
 	font-size: 15px;
 	color: var(--accent);
 	text-align: right;
+	text-overflow: ellipsis;
 }
 
 /* Checkboxes as iOS switches. */
@@ -975,7 +1195,9 @@ body.voyager .prefs-group input[type="checkbox"] {
 	height: 30px;
 	margin: 0;
 	border-radius: 999px;
-	background: var(--v-faint);
+	/* Needs more contrast than --v-faint, which is nearly invisible against a
+	   dark card and left the knob looking like it was floating. */
+	background: color-mix(in srgb, var(--text) 22%, transparent);
 	appearance: none;
 	-webkit-appearance: none;
 	transition: background 0.2s ease;
@@ -1039,8 +1261,13 @@ body.voyager > footer {
  * Bottom tab bar
  * ------------------------------------------------------------------ */
 
+/* The tab bar is a <nav>, so it inherits the base sheet's nav rule. That rule
+   sets `top: 0`, `width: calc(100% - 30px)`, padding, a margin and a shadow —
+   all of which have to be undone explicitly, or the bar renders at the top of
+   the screen and 30px too narrow. */
 body.voyager #v_tabbar {
 	position: fixed;
+	top: auto;
 	right: 0;
 	bottom: 0;
 	left: 0;
@@ -1048,10 +1275,16 @@ body.voyager #v_tabbar {
 	display: flex;
 	align-items: stretch;
 	justify-content: space-around;
+	width: auto;
+	max-width: none;
+	min-height: 0;
 	height: calc(var(--v-tabbar-height) + var(--v-safe-bottom));
+	margin: 0;
 	padding: 0 var(--v-safe-right) var(--v-safe-bottom) var(--v-safe-left);
-	background: color-mix(in srgb, var(--background) 82%, transparent);
+	background: color-mix(in srgb, var(--background) 88%, transparent);
 	border-top: 1px solid var(--v-hairline);
+	box-shadow: none;
+	font-size: 15px;
 }
 
 @supports ((-webkit-backdrop-filter: none) or (backdrop-filter: none)) {

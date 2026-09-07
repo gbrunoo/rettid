@@ -155,10 +155,14 @@
 	{% endif %}
 
 	<!-- POST BODY -->
+	{# Omitted for title-only posts, so its margins don't leave a gap between
+	   the title and the score row. #}
+	{% if !post.body.is_empty() || post.poll.is_some() %}
 	<div class="post_body">
 		{{ post.body|safe }}
 		{% call poll(post) %}
 	</div>
+	{% endif %}
 	<div class="post_score" title="{{ post.score.1 }}">
     {% if prefs.hide_score != "on" %}
     {{ post.score.0 }}
@@ -310,9 +314,13 @@
     &#x2022;
     {% endif %}
     <span class="label"> Upvotes</span></div>
+	{# Skipped entirely when there is no text, so the container's margins don't
+	   open dead space between the title and the score row. #}
+	{% if !post.body.is_empty() %}
 	<div class="post_body post_preview">
 		{{ post.body|safe }}
 	</div>
+	{% endif %}
 
 	{% call poll(post) %}
 
