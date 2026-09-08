@@ -58,7 +58,7 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Package release
-        run: tar czf redlib-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release/ redlib
+        run: tar czf rettid-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release/ rettid
 
       - name: Upload release
         uses: softprops/action-gh-release@v1
@@ -67,7 +67,7 @@ jobs:
           name: ${{ steps.version.outputs.VERSION }} - ${{ github.event.head_commit.message }}
           draft: true
           files: |
-            redlib-${{ matrix.target }}.tar.gz
+            rettid-${{ matrix.target }}.tar.gz
           body: |
             - ${{ github.event.head_commit.message }} ${{ github.sha }}
           generate_release_notes: true

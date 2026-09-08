@@ -1,24 +1,26 @@
 services:
-  redlib:
-    image: quay.io/redlib/redlib:latest
+  rettid:
+    build:
+      context: .
+      dockerfile: Dockerfile.alpine
     restart: always
-    container_name: "redlib"
+    container_name: "rettid"
     ports:
       - 8080:8080 # Specify `127.0.0.1:8080:8080` instead if using a reverse proxy
     user: nobody
     read_only: true
     security_opt:
       - no-new-privileges:true
-      # - seccomp=seccomp-redlib.json
+      # - seccomp=seccomp-rettid.json
     cap_drop:
       - ALL
     env_file: .env
     networks:
-      - redlib
+      - rettid
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "--tries=1", "http://localhost:8080/settings"]
       interval: 5m
       timeout: 3s
 
 networks:
-  redlib:
+  rettid:

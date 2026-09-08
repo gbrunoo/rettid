@@ -2,14 +2,15 @@
 WantedBy=default.target
 
 [Container]
-AutoUpdate=registry
-ContainerName=redlib
+ContainerName=rettid
 DropCapability=ALL
 EnvironmentFile=.env
 HealthCmd=["wget","--spider","-q","--tries=1","http://localhost:8080/settings"]
 HealthInterval=5m
 HealthTimeout=3s
-Image=quay.io/redlib/redlib:latest
+# Build your own image from Dockerfile.alpine or Dockerfile.ubuntu and
+# reference it here; this fork does not publish a container image.
+Image=localhost/rettid:latest
 NoNewPrivileges=true
 PublishPort=8080:8080
 ReadOnly=true

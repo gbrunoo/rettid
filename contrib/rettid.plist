@@ -3,10 +3,10 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>redlib</string>
+    <string>rettid</string>
 
     <key>Program</key>
-    <string>redlib</string>
+    <string>rettid</string>
 
     <key>KeepAlive</key>
     <true/>

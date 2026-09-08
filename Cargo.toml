@@ -1,8 +1,8 @@
 [package]
-name = "redlib"
+name = "rettid"
 description = " Alternative private front-end to Reddit"
 license = "AGPL-3.0-only"
-repository = "https://github.com/redlib-org/redlib"
+repository = "https://github.com/gbrunoo/redlib-revamped"
 version = "0.36.0"
 authors = [
     "Matthew Esposito <matt+cargo@matthew.science>",
@@ -10,7 +10,7 @@ authors = [
 ]
 edition = "2021"
 rust-version = "1.81"
-default-run = "redlib"
+default-run = "rettid"
 
 [dependencies]
 askama = { version = "0.14.0", default-features = false, features = [

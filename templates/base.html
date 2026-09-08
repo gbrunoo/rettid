@@ -4,9 +4,9 @@
 <html lang="en" class="{% if prefs.fixed_navbar == "on" %}fixed_navbar{% endif %}">
 	<head>
 		{% block head %}
-		<title>{% block title %}Redlib{% endblock %}</title>
+		<title>{% block title %}Rettid{% endblock %}</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<meta name="description" content="View on Redlib, an alternative private front-end to Reddit.">
+		<meta name="description" content="View on Rettid, an alternative private front-end to Reddit.">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 		{% if crate::utils::disable_indexing() %}
 		<meta name="robots" content="noindex, nofollow">
@@ -20,7 +20,7 @@
 		<meta name="theme-color" content="#1F1F1F">
 		{% endif %}
 		<!-- iOS Application -->
-		<meta name="apple-mobile-web-app-title" content="Redlib">
+		<meta name="apple-mobile-web-app-title" content="Rettid">
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		{# The voyager layout draws its own bars and honours safe-area insets,
 		   so it can take over the status bar area for an edge-to-edge look. #}
@@ -34,7 +34,7 @@
 		<!-- iOS Logo -->
 		<link href="/touch-icon-iphone.png" rel="apple-touch-icon">
 		<!-- OpenSearch description file -->
-		<link rel="search" type="application/opensearchdescription+xml" title="Search Redlib" href="/opensearch.xml">
+		<link rel="search" type="application/opensearchdescription+xml" title="Search Rettid" href="/opensearch.xml">
 		<!-- PWA Manifest -->
 		<link rel="manifest" type="application/json" href="/manifest.json">
 		<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"> 
@@ -55,7 +55,7 @@
 		<nav class="
 			{% if prefs.fixed_navbar == "on" %} fixed_navbar{% endif %}">
 			<div id="logo">
-				<a id="redlib" href="/"><span id="red">red</span><span id="lib">lib.</span></a>
+				<a id="rettid" href="/"><span id="red">rett</span><span id="lib">id.</span></a>
 				{% block subscriptions %}{% endblock %}
 			</div>
 			{% block search %}{% endblock %}
@@ -92,7 +92,7 @@
 		{% block footer %}
 			<footer>
 				<div class="footer-buttons">
-					<p><span id="version">v{{ env!("CARGO_PKG_VERSION") }}&emsp;</span><a href="/info" title="View instance information">ⓘ View instance info</a>&emsp;<a href="https://github.com/redlib-org/redlib" title="View code on GitHub">&lt;&gt; Code</a></p>
+					<p><span id="version">v{{ env!("CARGO_PKG_VERSION") }}&emsp;</span><a href="/info" title="View instance information">ⓘ View instance info</a>&emsp;<a href="https://github.com/gbrunoo/redlib-revamped" title="View code on GitHub">&lt;&gt; Code</a></p>
 				</div>
 			</footer>
 		{% endblock %}

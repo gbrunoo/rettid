@@ -258,7 +258,7 @@ impl Media {
 			let permalink_base = url_path_basename(data["permalink"].as_str().unwrap_or_default());
 			let media_url_base = url_path_basename(url_val.as_str().unwrap_or_default());
 
-			format!("redlib_{permalink_base}_{media_url_base}")
+			format!("rettid_{permalink_base}_{media_url_base}")
 		} else {
 			String::new()
 		};
@@ -1087,13 +1087,13 @@ pub fn render_bullet_lists(input_text: &str) -> String {
 static REDDIT_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"href="(https|http|)://(www\.|old\.|np\.|amp\.|new\.|)(reddit\.com|redd\.it)/"#).unwrap());
 static REDDIT_PREVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"https?://(external-preview|preview|i)\.redd\.it(.*)").unwrap());
 static REDDIT_EMOJI_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"https?://(www|).redditstatic\.com/(.*)").unwrap());
-static REDLIB_PREVIEW_LINK_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"/(img|preview/)(pre|external-pre)?/(.*?)>"#).unwrap());
-static REDLIB_PREVIEW_TEXT_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r">(.*?)</a>").unwrap());
+static RETTID_PREVIEW_LINK_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"/(img|preview/)(pre|external-pre)?/(.*?)>"#).unwrap());
+static RETTID_PREVIEW_TEXT_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r">(.*?)</a>").unwrap());
 
-/// Rewrite Reddit links to Redlib in body of text
+/// Rewrite Reddit links to Rettid in body of text
 pub fn rewrite_urls(input_text: &str) -> String {
 	let mut text1 =
-		// Rewrite Reddit links to Redlib
+		// Rewrite Reddit links to Rettid
 		REDDIT_REGEX.replace_all(input_text, r#"href="/"#).to_string();
 
 	loop {
@@ -1109,15 +1109,15 @@ pub fn rewrite_urls(input_text: &str) -> String {
 	// Remove (html-encoded) "\" from URLs.
 	text1 = text1.replace("%5C", "").replace("\\_", "_");
 
-	// Rewrite external media previews to Redlib
+	// Rewrite external media previews to Rettid
 	loop {
 		if REDDIT_PREVIEW_REGEX.find(&text1).is_none() {
 			return text1;
 		} else {
 			let formatted_url = format_url(REDDIT_PREVIEW_REGEX.find(&text1).map(|x| x.as_str()).unwrap_or_default());
 
-			let image_url = REDLIB_PREVIEW_LINK_REGEX.find(&formatted_url).map_or("", |m| m.as_str());
-			let mut image_caption = REDLIB_PREVIEW_TEXT_REGEX.find(&formatted_url).map_or("", |m| m.as_str());
+			let image_url = RETTID_PREVIEW_LINK_REGEX.find(&formatted_url).map_or("", |m| m.as_str());
+			let mut image_caption = RETTID_PREVIEW_TEXT_REGEX.find(&formatted_url).map_or("", |m| m.as_str());
 
 			/* As long as image_caption isn't empty remove first and last four characters of image_text to leave us with just the text in the caption without any HTML.
 			This makes it possible to enclose it in a <figcaption> later on without having stray HTML breaking it */

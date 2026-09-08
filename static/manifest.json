@@ -1,7 +1,7 @@
 {
 	"id": "/",
-	"name": "Redlib",
-	"short_name": "Redlib",
+	"name": "Rettid",
+	"short_name": "Rettid",
 	"description": "An alternative private front-end to Reddit",
 	"lang": "en",
 	"dir": "ltr",

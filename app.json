@@ -1,5 +1,5 @@
 {
-  "name": "Redlib",
+  "name": "Rettid",
   "description": "Private front-end for Reddit",
   "buildpacks": [
     {

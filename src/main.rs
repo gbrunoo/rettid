@@ -9,12 +9,12 @@ use std::sync::LazyLock;
 use futures_lite::FutureExt;
 use hyper::{header::HeaderValue, Body, Request, Response};
 use log::{info, warn};
-use redlib::client::{canonical_path, proxy, rate_limit_check, CLIENT};
-use redlib::server::{self, RequestExt};
-use redlib::utils::{error, redirect, ThemeAssets};
-use redlib::{api, config, duplicates, headers, instance_info, post, search, settings, subreddit, user};
+use rettid::client::{canonical_path, proxy, rate_limit_check, CLIENT};
+use rettid::server::{self, RequestExt};
+use rettid::utils::{error, redirect, ThemeAssets};
+use rettid::{api, config, duplicates, headers, instance_info, post, search, settings, subreddit, user};
 
-use redlib::client::OAUTH_CLIENT;
+use rettid::client::OAUTH_CLIENT;
 
 // Create Services
 
@@ -135,7 +135,7 @@ async fn main() {
 	// Initialize logger
 	pretty_env_logger::init();
 
-	let matches = Command::new("Redlib")
+	let matches = Command::new("Rettid")
 		.version(env!("CARGO_PKG_VERSION"))
 		.about("Private front-end for Reddit written in Rust ")
 		.arg(Arg::new("ipv4-only").short('4').long("ipv4-only").help("Listen on IPv4 only").num_args(0))
@@ -186,7 +186,7 @@ async fn main() {
 			let mut message = format!("Rate limit check failed: {e}");
 			message += "\nThis may cause issues with the rate limit.";
 			message += "\nPlease report this error with the above information.";
-			message += "\nhttps://github.com/redlib-org/redlib/issues/new?assignees=sigaloid&labels=bug&title=%F0%9F%90%9B+Bug+Report%3A+Rate+limit+mismatch";
+			message += "\nhttps://github.com/gbrunoo/redlib-revamped/issues/new?labels=bug&title=%F0%9F%90%9B+Bug+Report%3A+Rate+limit+mismatch";
 			warn!("{}", message);
 			eprintln!("{message}");
 		}
@@ -207,7 +207,7 @@ async fn main() {
 		[address, ":", port].concat()
 	};
 
-	println!("Starting Redlib...");
+	println!("Starting Rettid...");
 
 	// Begin constructing a server
 	let mut app = server::Server::new();
@@ -446,7 +446,7 @@ async fn main() {
 	// Default service in case no routes match
 	app.at("/*").get(|req| error(req, "Nothing here").boxed());
 
-	println!("Running Redlib v{} on {listener}!", env!("CARGO_PKG_VERSION"));
+	println!("Running Rettid v{} on {listener}!", env!("CARGO_PKG_VERSION"));
 
 	let server = app.listen(&listener);
 
@@ -468,7 +468,7 @@ pub async fn proxy_commit_info() -> Result<Response<Body>, String> {
 
 #[cached(time = 600)]
 async fn fetch_commit_info() -> String {
-	let url = "https://github.com/redlib-org/redlib/commits/main.atom";
+	let url = "https://github.com/gbrunoo/redlib-revamped/commits/main.atom";
 
 	CLIENT.get(url).send().await.expect("Failed to request GitHub").text().await.expect("Failed to read body")
 }

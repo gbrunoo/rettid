@@ -6,7 +6,11 @@ on:
     types:
       - completed
 env:
-  REGISTRY_IMAGE: quay.io/redlib/redlib
+  # TODO: this points at upstream Redlib's registry namespace and will fail
+  # to push without their QUAY_USERNAME/QUAY_ROBOT_TOKEN secrets. Point this
+  # at a registry namespace this fork actually owns (e.g. ghcr.io/gbrunoo/rettid)
+  # before relying on this workflow.
+  REGISTRY_IMAGE: quay.io/redlib/rettid
 
 jobs:
   build:
@@ -100,7 +104,7 @@ jobs:
       #   env:
       #     DOCKER_APIKEY: ${{ secrets.APIKEY__QUAY_IO }}
       #   with:
-      #     destination_container_repo: quay.io/redlib/redlib
+      #     destination_container_repo: quay.io/redlib/rettid
       #     provider: quay
       #     readme_file: 'README.md'
 

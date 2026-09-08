@@ -11,42 +11,42 @@ RUN apt-get update \
     && apt-get -y install git build-essential cmake libclang-dev \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /redlib
+WORKDIR /rettid
 
 # download (most) dependencies in their own layer
 COPY Cargo.lock Cargo.toml ./
 RUN mkdir src && echo "fn main() { panic!(\"why am i running?\") }" > src/main.rs
-RUN cargo build --release --locked --bin redlib
+RUN cargo build --release --locked --bin rettid
 RUN rm ./src/main.rs && rmdir ./src
 
-# copy the source and build the redlib binary
+# copy the source and build the rettid binary
 COPY . ./
-RUN cargo build --release --locked --bin redlib
-RUN echo "finished building redlib!"
+RUN cargo build --release --locked --bin rettid
+RUN echo "finished building rettid!"
 
 ########################
 ## release image
 ########################
 FROM ubuntu:${UBUNTU_RELEASE_VERSION} AS release
 
-# Import redlib binary from builder
-COPY --from=builder /redlib/target/release/redlib /usr/local/bin/redlib
+# Import rettid binary from builder
+COPY --from=builder /rettid/target/release/rettid /usr/local/bin/rettid
 
-# Add non-root user for running redlib
+# Add non-root user for running rettid
 RUN useradd \
     --no-create-home \
     --password "!" \
-    --comment "user for running redlib" \
-    redlib
-USER redlib
+    --comment "user for running rettid" \
+    rettid
+USER rettid
 
 # Document that we intend to expose port 8080 to whoever runs the container
 EXPOSE 8080
 
-# Run a healthcheck every minute to make sure redlib is functional
+# Run a healthcheck every minute to make sure rettid is functional
 HEALTHCHECK --interval=1m --timeout=3s CMD wget --spider -q http://localhost:8080/settings || exit 1
 
 # Add container metadata
-LABEL org.opencontainers.image.authors="sigaloid"
+LABEL org.opencontainers.image.authors="gbrunoo"
 
-CMD ["redlib"]
+CMD ["rettid"]
