@@ -89,6 +89,27 @@ async fn resource(body: &str, content_type: &str, cache: bool) -> Result<Respons
 	Ok(res)
 }
 
+/// Serves the service worker.
+///
+/// The crate version is substituted into the script so that each release
+/// produces new cache names, which the worker then prunes on activate.
+/// It must not be cached by the browser, otherwise clients could be stuck
+/// on an old worker; it is also served with `Service-Worker-Allowed` so it
+/// can control the whole origin.
+async fn service_worker() -> Result<Response<Body>, String> {
+	let body = include_str!("../static/sw.js").replace("__VERSION__", env!("CARGO_PKG_VERSION"));
+
+	Ok(
+		Response::builder()
+			.status(200)
+			.header("content-type", "text/javascript")
+			.header("Cache-Control", "no-cache")
+			.header("Service-Worker-Allowed", "/")
+			.body(body.into())
+			.unwrap_or_default(),
+	)
+}
+
 async fn style() -> Result<Response<Body>, String> {
 	let mut res = include_str!("../static/style.css").to_string();
 	for file in ThemeAssets::iter() {
@@ -209,7 +230,7 @@ async fn main() {
 		"Referrer-Policy" => "no-referrer",
 		"X-Content-Type-Options" => "nosniff",
 		"X-Frame-Options" => "DENY",
-		"Content-Security-Policy" => "default-src 'none'; font-src 'self'; script-src 'self' blob:; manifest-src 'self'; media-src 'self' data: blob: about:; style-src 'self' 'unsafe-inline'; base-uri 'none'; img-src 'self' data:; form-action 'self'; frame-ancestors 'none'; connect-src 'self'; worker-src blob:;"
+		"Content-Security-Policy" => "default-src 'none'; font-src 'self'; script-src 'self' blob:; manifest-src 'self'; media-src 'self' data: blob: about:; style-src 'self' 'unsafe-inline'; base-uri 'none'; img-src 'self' data:; form-action 'self'; frame-ancestors 'none'; connect-src 'self'; worker-src 'self' blob:;"
 	};
 
 	if let Some(expire_time) = hsts {
@@ -220,6 +241,17 @@ async fn main() {
 
 	// Read static files
 	app.at("/style.css").get(|_| style().boxed());
+	app
+		.at("/voyager.css")
+		.get(|_| resource(include_str!("../static/voyager.css"), "text/css", true).boxed());
+	// PWA: the worker is served from the root so its scope covers the whole origin.
+	app.at("/sw.js").get(|_| service_worker().boxed());
+	app
+		.at("/register_sw.js")
+		.get(|_| resource(include_str!("../static/register_sw.js"), "text/javascript", false).boxed());
+	app
+		.at("/offline.html")
+		.get(|_| resource(include_str!("../static/offline.html"), "text/html; charset=utf-8", false).boxed());
 	app
 		.at("/manifest.json")
 		.get(|_| resource(include_str!("../static/manifest.json"), "application/json", false).boxed());

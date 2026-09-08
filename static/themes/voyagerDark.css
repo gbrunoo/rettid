@@ -1,0 +1,15 @@
+/* Voyager dark theme — iOS system dark palette */
+.voyagerDark {
+	--accent: #0a84ff;
+	--green: #30d158;
+	--text: #ffffff;
+	--foreground: #2c2c2e;
+	--background: #000000;
+	--outside: #1c1c1e;
+	--post: #1c1c1e;
+	--panel-border: 1px solid #38383a;
+	--highlighted: #2c2c2e;
+	--visited: #8e8e93;
+	--shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+	--spoiler: #48484a;
+}
