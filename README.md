@@ -1,50 +1,63 @@
-# Redlib
+# Redlib Revamped
 
-> An alternative private front-end to Reddit, with its origins in [Libreddit](https://github.com/libreddit/libreddit).
+> A private front-end to Reddit. Forked from [Redlib](https://github.com/redlib-org/redlib), which itself has its origins in [Libreddit](https://github.com/libreddit/libreddit).
 
 ![screenshot](https://i.ibb.co/18vrdxk/redlib-rust.png)
 
 ---
 
-**10-second pitch:** Redlib is a private front-end like [Invidious](https://github.com/iv-org/invidious) but for Reddit. Browse the coldest takes of [r/unpopularopinion](https://farside.link/redlib/r/unpopularopinion) without being [tracked](#reddit).
+**10-second pitch:** Browse Reddit without ads, trackers, or an account, the way [Invidious](https://github.com/iv-org/invidious) does for YouTube. This fork builds on Redlib with a mobile-first "Voyager" layout, offline/installable PWA support, and an opt-in read-only JSON API for building your own client.
 
 - 🚀 Fast: written in Rust for blazing-fast speeds and memory safety
-- ☁️ Light: no JavaScript, no ads, no tracking, no bloat
+- ☁️ Light: no required JavaScript, no ads, no tracking, no bloat
 - 🕵 Private: all requests are proxied through the server, including media
 - 🔒 Secure: strong [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) prevents browser requests to Reddit
+- 📱 Installable: optional Voyager layout with an offline-capable PWA (service worker, manifest, app shell caching)
+- 🔌 Extensible: opt-in JSON API for scripting or building an alternative frontend against this instance
 
 ---
 
 ## Table of Contents
 
-1. [Redlib](#redlib)
+1. [About this fork](#about-this-fork)
+   - [What's different from upstream Redlib](#whats-different-from-upstream-redlib)
 2. [Instances](#instances)
-3. [About](#about)
+3. [About Redlib](#about-redlib)
    - [Built with](#built-with)
    - [How is it different from other Reddit front ends?](#how-is-it-different-from-other-reddit-front-ends)
-     - [Teddit](#teddit)
-     - [Libreddit](#libreddit)
 4. [Comparison](#comparison)
-   - [Speed](#speed)
    - [Privacy](#privacy)
-     - [Reddit](#reddit)
-     - [Redlib](#redlib-1)
-       - [Server](#server)
 5. [Deployment](#deployment)
    - [Docker](#docker)
-     - [Docker Compose](#docker-compose)
-     - [Docker CLI](#docker-cli)
-   - Podman 
-      - Quadlets
-
+   - [Podman](#podman)
    - [Binary](#binary)
-     - [Running as a systemd service](#running-as-a-systemd-service)
    - [Building from source](#building-from-source)
-   - [Replit/Heroku/Glitch](#replit-heroku-glitch)
+   - [Replit/Heroku](#replitheroku)
    - [launchd (macOS)](#launchd-macos)
 6. [Configuration](#configuration)
+   - [Command Line Flags](#command-line-flags)
    - [Instance settings](#instance-settings)
    - [Default user settings](#default-user-settings)
+   - [Voyager layout & PWA](#voyager-layout--pwa)
+   - [JSON API](#json-api)
+   - [Forward Proxies](#forward-proxies)
+7. [Security](#security)
+8. [Building](#building)
+
+---
+
+# About this fork
+
+This repository is a personal fork of [Redlib](https://github.com/redlib-org/redlib), maintained independently at [gbrunoo/redlib-revamped](https://github.com/gbrunoo/redlib-revamped). It tracks upstream where practical, but carries changes that don't fit upstream's no-JavaScript, minimal-surface philosophy, so they live here instead.
+
+## What's different from upstream Redlib
+
+- **Voyager layout**: an additional mobile-first layout option (alongside `card`, `clean`, `compact`) modeled after [Voyager for Lemmy](https://github.com/aeharding/voyager) and Apollo-style Reddit clients. Selectable per-user in Settings or as an instance default via `REDLIB_DEFAULT_LAYOUT=voyager`. Every rule is scoped to `body.voyager`, so it has no effect on the other layouts.
+- **PWA support**: a service worker, web app manifest, and offline fallback page make the instance installable on mobile and usable with flaky connectivity. Static assets and proxied media are cached; HTML pages are network-first since preferences live in cookies.
+- **Opt-in JSON API**: `GET /api/reddit/*path` forwards an allowlisted set of public Reddit paths through this instance's existing OAuth/rate-limit machinery, for anyone scripting against their own instance or building an alternative frontend. Disabled by default (see [JSON API](#json-api)).
+- **wreq/BoringSSL networking stack**: outbound requests use [wreq](https://github.com/0x676e67/wreq) with BoringSSL (built from source) instead of the previous client, for closer TLS fingerprint parity with Reddit's official apps.
+
+Everything else — routing, templates, config surface, deployment story — is inherited from upstream Redlib and documented below.
 
 ---
 
@@ -53,327 +66,153 @@
 > [!TIP]
 > 🔗 **Want to automatically redirect Reddit links to Redlib? Use [LibRedirect](https://github.com/libredirect/libredirect) or [Privacy Redirect](https://github.com/SimonBrazell/privacy-redirect)!**
 
-An up-to-date table of instances is available in [Markdown](https://github.com/redlib-org/redlib-instances/blob/main/instances.md) and [machine-readable JSON](https://github.com/redlib-org/redlib-instances/blob/main/instances.json).
-
-Both files are part of the [redlib-instances](https://github.com/redlib-org/redlib-instances) repository. To contribute your [self-hosted instance](#deployment) to the list, see the [redlib-instances README](https://github.com/redlib-org/redlib-instances/blob/main/README.md).
-
-For information on instance uptime, see the [Uptime Robot status page](https://stats.uptimerobot.com/mpmqAs1G2Q).
+This fork isn't part of the public instance list; it's meant for self-hosting (see [Deployment](#deployment)). For official Redlib instances, an up-to-date table is available in [Markdown](https://github.com/redlib-org/redlib-instances/blob/main/instances.md) and [machine-readable JSON](https://github.com/redlib-org/redlib-instances/blob/main/instances.json) in the [redlib-instances](https://github.com/redlib-org/redlib-instances) repository.
 
 ---
 
-# About
+# About Redlib
 
 > [!NOTE]
-> Find Redlib on 💬 [Matrix](https://matrix.to/#/#redlib:matrix.org), 🐋 [Quay.io](https://quay.io/repository/redlib/redlib), :octocat: [GitHub](https://github.com/redlib-org/redlib), and 🦊 [GitLab](https://gitlab.com/redlib/redlib).
+> Find upstream Redlib on 💬 [Matrix](https://matrix.to/#/#redlib:matrix.org), 🐋 [Quay.io](https://quay.io/repository/redlib/redlib), :octocat: [GitHub](https://github.com/redlib-org/redlib), and 🦊 [GitLab](https://gitlab.com/redlib/redlib).
 
-Redlib hopes to provide an easier way to browse Reddit, without the ads, trackers, and bloat. Redlib was inspired by other alternative front-ends to popular services such as [Invidious](https://github.com/iv-org/invidious) for YouTube, [Nitter](https://github.com/zedeus/nitter) for Twitter, and [Bibliogram](https://sr.ht/~cadence/bibliogram/) for Instagram.
+Redlib provides an easier way to browse Reddit, without the ads, trackers, and bloat. It was inspired by other alternative front-ends to popular services such as [Invidious](https://github.com/iv-org/invidious) for YouTube, [Nitter](https://github.com/zedeus/nitter) for Twitter, and [Bibliogram](https://sr.ht/~cadence/bibliogram/) for Instagram.
 
-Redlib currently implements most of Reddit's (signed-out) functionalities but still lacks [a few features](https://github.com/redlib-org/redlib/issues).
+Redlib implements most of Reddit's (signed-out) functionality but still lacks [a few features](https://github.com/redlib-org/redlib/issues).
 
 ## Built with
 
 - [Rust](https://www.rust-lang.org/) - Programming language
-- [Hyper](https://github.com/hyperium/hyper) - HTTP server and client
+- [Hyper](https://github.com/hyperium/hyper) - HTTP server
+- [wreq](https://github.com/0x676e67/wreq) - HTTP client with BoringSSL, used for outbound Reddit requests
 - [Askama](https://github.com/askama-rs/askama) - Templating engine
-- [Rustls](https://github.com/rustls/rustls) - TLS library
 
 ## How is it different from other Reddit front ends?
 
 ### Teddit
 
-Teddit is another awesome open source project designed to provide an alternative frontend to Reddit. There is no connection between the two, and you're welcome to use whichever one you favor. Competition fosters innovation and Teddit's release has motivated me to build Redlib into an even more polished product.
-
-If you are looking to compare, the biggest differences I have noticed are:
-
-- Redlib is themed around Reddit's redesign whereas Teddit appears to stick much closer to Reddit's old design. This may suit some users better as design is always subjective.
-- Redlib is written in [Rust](https://www.rust-lang.org) for speed and memory safety. It uses [Hyper](https://hyper.rs), a speedy and lightweight HTTP server/client implementation.
+Teddit is another open source alternative frontend to Reddit, unrelated to Redlib. Redlib is themed around Reddit's redesign, whereas Teddit sticks closer to Reddit's old design; which one fits depends on preference. Redlib is written in Rust for speed and memory safety, using Hyper as its HTTP server.
 
 ### Libreddit
 
-While originating as a fork of Libreddit, the name "Redlib" was adopted to avoid legal issues, as Reddit only allows the use of their name if structured as "XYZ For Reddit".
+Redlib originated as a fork of Libreddit; the name changed to avoid trademark issues, since Reddit only permits use of their name when structured as "XYZ For Reddit." Technical improvements made along the way include:
 
-Several technical improvements have also been made, including:
-
-- **OAuth token spoofing**: To circumvent rate limits imposed by Reddit, OAuth token spoofing is used to mimick the most common iOS and Android clients. While spoofing both iOS and Android clients was explored, only the Android client was chosen due to content restrictions when using an anonymous iOS client.
-- **Token refreshing**: The authentication token is refreshed every 24 hours, emulating the behavior of the official Android app.
-- **HTTP header mimicking**: Efforts are made to send along as many of the official app's headers as possible to reduce the likelihood of Reddit's crackdown on Redlib's requests.
+- **OAuth token spoofing**: to work around Reddit's rate limits, requests mimic the official Android client's OAuth flow (iOS was considered but dropped due to tighter content restrictions for anonymous clients).
+- **Token refreshing**: the authentication token is refreshed every 24 hours, matching the official Android app's behavior.
+- **HTTP header mimicking**: as many of the official app's headers as possible are forwarded to reduce the chance of Reddit blocking Redlib's traffic.
 
 ---
 
 # Comparison
 
-This section outlines how Redlib compares to Reddit in terms of speed and privacy.
-
-## Speed
-
-Last tested on January 12, 2024.
-
-Results from Google PageSpeed Insights ([Redlib Report](https://pagespeed.web.dev/report?url=https%3A%2F%2Fredlib.matthew.science%2F), [Reddit Report](https://pagespeed.web.dev/report?url=https://www.reddit.com)).
-
-| Performance metric  | Redlib   | Reddit    |
-|---------------------|----------|-----------|
-| Speed Index         | 0.6s     | 1.9s      |
-| Performance Score   | 100%     | 64%       |
-| Time to Interactive | **2.8s** | **12.4s** |
-
 ## Privacy
 
 ### Reddit
 
-**Logging:** According to Reddit's [privacy policy](https://www.redditinc.com/policies/privacy-policy), they "may [automatically] log information" including:
-
-- IP address
-- User-agent string
-- Browser type
-- Operating system
-- Referral URLs
-- Device information (e.g., device IDs)
-- Device settings
-- Pages visited
-- Links clicked
-- The requested URL
-- Search terms
-
-**Location:** The same privacy policy goes on to describe that location data may be collected through the use of:
-
-- GPS (consensual)
-- Bluetooth (consensual)
-- Content associated with a location (consensual)
-- Your IP Address
-
-**Cookies:** Reddit's [cookie notice](https://www.redditinc.com/policies/cookies) documents the array of cookies used by Reddit including/regarding:
-
-- Authentication
-- Functionality
-- Analytics and Performance
-- Advertising
-- Third-Party Cookies
-- Third-Party Site
+Per Reddit's [privacy policy](https://www.redditinc.com/policies/privacy-policy) and [cookie notice](https://www.redditinc.com/policies/cookies), Reddit logs IP address, user-agent, browser/OS, referral URLs, device IDs and settings, pages visited, links clicked, and search terms; it can collect location via GPS, Bluetooth, or IP address (where consented); and it sets cookies for authentication, functionality, analytics, advertising, and third-party tracking.
 
 ### Redlib
 
-For transparency, I hope to describe all the ways Redlib handles user privacy.
-
-#### Server
-
-- **Logging:** In production (when running the binary, hosting with docker, or using the official instances), Redlib logs nothing. When debugging (running from source without `--release`), Redlib logs post IDs fetched to aid with troubleshooting.
-
-- **Cookies:** Redlib uses optional cookies to store any configured settings in the settings menu. These are not cross-site cookies and the cookies hold no personal data.
+- **Logging**: in production (binary, Docker, or an official instance), Redlib logs nothing. When run from source in debug mode, it logs fetched post IDs to aid troubleshooting.
+- **Cookies**: Redlib uses optional, first-party cookies to store settings chosen in the settings menu. They hold no personal data and aren't used cross-site.
+- **PWA cache** (this fork's Voyager layout): the service worker caches static assets and already-proxied media locally in the browser, entirely client-side. It doesn't send anything to a third party, and can be cleared like any other site data.
 
 ---
 
 # Deployment
 
-This section covers multiple ways of deploying Redlib. Using [Docker](#docker) is recommended for production.
+This section covers ways to run this fork. Using [Docker](#docker) is recommended for production; substitute your own image if you build and publish one, since this fork isn't published to a public registry.
 
-For configuration options, see the [Configuration section](#Configuration).
+For configuration options, see [Configuration](#configuration).
 
 ## Docker
 
-[Docker](https://www.docker.com) lets you run containerized applications. Containers are loosely isolated environments that are lightweight and contain everything needed to run the application, so there's no need to rely on what's installed on the host.
+[Docker](https://www.docker.com) lets you run containerized applications without depending on what's installed on the host.
 
-Container images for Redlib are available at [quay.io](https://quay.io/repository/redlib/redlib), with support for `amd64`, `arm64`, and `armv7` platforms.
+Official Redlib images (upstream, without this fork's changes) are available at [quay.io/redlib/redlib](https://quay.io/repository/redlib/redlib) for `amd64`, `arm64`, and `armv7`. To run this fork in Docker, build your own image from the included `Dockerfile.alpine` or `Dockerfile.ubuntu`, or build the binary and use the plain `Dockerfile` as a template.
+
+```bash
+docker build -f Dockerfile.alpine -t redlib-revamped .
+docker run -d --name redlib-revamped -p 8080:8080 redlib-revamped
+```
 
 ### Docker Compose
 
-> [!IMPORTANT]
-> These instructions assume the [Compose plugin](https://docs.docker.com/compose/migrate/#what-are-the-differences-between-compose-v1-and-compose-v2) has already been installed. If not, follow these [instructions on the Docker Docs](https://docs.docker.com/compose/install) for how to do so.
-
-Copy `compose.yaml` and modify any relevant values (for example, the ports Redlib should listen on).
-
-Start Redlib in detached mode (running in the background):
+Copy `compose.yaml`, point `image:` at your own build (or use `compose.dev.yaml` to build locally), and adjust ports as needed.
 
 ```bash
 docker compose up -d
-```
-
-Stream logs from the Redlib container:
-
-```bash
 docker logs -f redlib
 ```
 
-### Docker CLI
+## Podman
 
-Deploy Redlib:
-
-```bash
-docker pull quay.io/redlib/redlib:latest
-docker run -d --name redlib -p 8080:8080 quay.io/redlib/redlib:latest
-```
-
-Deploy using a different port on the host (in this case, port 80):
+[Podman](https://podman.io/) runs the same containers rootlessly. A Quadlet unit is provided in `redlib.container`.
 
 ```bash
-docker pull quay.io/redlib/redlib:latest
-docker run -d --name redlib -p 80:8080 quay.io/redlib/redlib:latest
-```
-
-If you're using a reverse proxy in front of Redlib, prefix the port numbers with `127.0.0.1` so that Redlib only listens on the host port **locally**. For example, if the host port for Redlib is `8080`, specify `127.0.0.1:8080:8080`.
-
-Stream logs from the Redlib container:
-
-```bash
-docker logs -f redlib
-```
-## Podman 
-
-[Podman](https://podman.io/) lets you run containerized applications in a rootless fashion. Containers are loosely isolated environments that are lightweight and contain everything needed to run the application, so there's no need to rely on what's installed on the host.
-
-Container images for Redlib are available at [quay.io](https://quay.io/repository/redlib/redlib), with support for `amd64`, `arm64`, and `armv7` platforms.
-
-### Quadlets
-
-> [!IMPORTANT]
-> These instructions assume that you are on a systemd based distro with [podman](https://podman.io/). If not, follow these [instructions on podman's website](https://podman.io/docs/installation) for how to do so. 
-> It also assumes you have used `loginctl enable-linger <username>` to enable the service to start for your user without logging in. 
-
-Copy the `redlib.container` and `.env.example` files to `.config/containers/systemd/` and modify any relevant values (for example, the ports Redlib should listen on, renaming the .env file and editing its values, etc.).
-
-To start Redlib either reboot or follow the instructions below:
-
-Notify systemd of the new files
-```bash
+cp redlib.container .env.example .config/containers/systemd/
 systemctl --user daemon-reload
-```
-
-Start the newly generated service file
-
-```bash
 systemctl --user start redlib.service
-```
-
-You can check the status of your container by using the following command:
-```bash 
 systemctl --user status redlib.service
 ```
 
+> [!IMPORTANT]
+> Requires a systemd-based distro with Podman installed, and `loginctl enable-linger <username>` so the service can run without an active login session.
+
 ## Binary
 
-If you're on Linux, you can grab a binary from [the newest release](https://github.com/redlib-org/redlib/releases/latest) from GitHub.
-
-Download the binary using [Wget](https://www.gnu.org/software/wget/):
-
-```bash
-wget https://github.com/redlib-org/redlib/releases/download/v0.31.0/redlib
-```
-
-Make the binary executable and change its ownership to `root`:
+Build from source (see below) or grab a binary from your own release pipeline; this fork does not publish prebuilt binaries.
 
 ```bash
 sudo chmod +x redlib && sudo chown root:root redlib
-```
-
-Copy the binary to `/usr/bin`:
-
-```bash
 sudo cp ./redlib /usr/bin/redlib
-```
-
-Deploy Redlib to `0.0.0.0:8080`:
-
-```bash
 redlib
 ```
 
 > [!IMPORTANT]
-> If you're proxying Redlib through NGINX (see [issue #122](https://github.com/libreddit/libreddit/issues/122#issuecomment-782226853)), add
->
-> ```nginx
-> proxy_http_version 1.1;
-> ```
->
-> to your NGINX configuration file above your `proxy_pass` line.
+> If proxying through NGINX, add `proxy_http_version 1.1;` above your `proxy_pass` line.
 
 ### Running as a systemd service
 
-You can use the systemd service available in `contrib/redlib.service`
-(install it on `/etc/systemd/system/redlib.service`).
-
-That service can be optionally configured in terms of environment variables by
-creating a file in `/etc/redlib.conf`. Use the `contrib/redlib.conf` as a
-template. You can also add the `REDLIB_DEFAULT__{X}` settings explained
-above.
-
-When "Proxying using NGINX" where the proxy is on the same machine, you should
-guarantee nginx waits for this service to start. Edit
-`/etc/systemd/system/redlib.service.d/reverse-proxy.conf`:
-
-```conf
-[Unit]
-Before=nginx.service
-```
+Use `contrib/redlib.service` (install to `/etc/systemd/system/redlib.service`). Configure it via environment variables in `/etc/redlib.conf` (template: `contrib/redlib.conf`).
 
 ## Building from source
 
-To deploy Redlib with changes not yet included in the latest release, you can build the application from source.
-
 ```bash
-git clone https://github.com/redlib-org/redlib && cd redlib
+git clone https://github.com/gbrunoo/redlib-revamped && cd redlib-revamped
 cargo run
 ```
+
+See [Building](#building) for platform-specific build dependencies (this project builds BoringSSL from source).
 
 ## Replit/Heroku
 
 > [!WARNING]
-> These are free hosting options, but they are _not_ private and will monitor server usage to prevent abuse. If you need a free and easy setup, this method may work best for you.
+> Free hosting options are not private and will monitor usage to prevent abuse. Fine for a quick, disposable setup; not recommended otherwise.
 
-<a href="https://repl.it/github/redlib-org/redlib"><img src="https://repl.it/badge/github/redlib-org/redlib" alt="Run on Repl.it" height="32" /></a>
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/redlib-org/redlib)
+Deploy buttons aren't wired up for this fork; use the [upstream repository](https://github.com/redlib-org/redlib) if you want one-click Replit/Heroku deployment of vanilla Redlib.
 
 ## launchd (macOS)
 
-If you are on macOS, you can use the [launchd](https://en.wikipedia.org/wiki/Launchd) service available in `contrib/redlib.plist`.
-
-Install it with `cp contrib/redlib.plist ~/Library/LaunchAgents/`.
-
-Load and start it with `launchctl load ~/Library/LaunchAgents/redlib.plist`.
-
-<!-- ## Cargo
-
-Make sure Rust stable is installed along with `cargo`, Rust's package manager.
-
 ```bash
-cargo install libreddit
-``` -->
-
-<!-- ## AUR
-
-For ArchLinux users, Redlib is available from the AUR as [`libreddit-git`](https://aur.archlinux.org/packages/libreddit-git).
-
-```bash
-yay -S libreddit-git
+cp contrib/redlib.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/redlib.plist
 ```
-## NetBSD/pkgsrc
-
-For NetBSD users, Redlib is available from the official repositories.
-
-```bash
-pkgin install libreddit
-```
-
-Or, if you prefer to build from source
-
-```bash
-cd /usr/pkgsrc/libreddit
-make install
-``` -->
 
 ---
 
 # Configuration
 
-You can configure Redlib further using environment variables. For example:
+Configure via environment variables:
 
 ```bash
 REDLIB_DEFAULT_SHOW_NSFW=on redlib
 ```
 
 ```bash
-REDLIB_DEFAULT_WIDE=on REDLIB_DEFAULT_THEME=dark redlib -r
+REDLIB_DEFAULT_WIDE=on REDLIB_DEFAULT_THEME=dark redlib
 ```
 
-You can also configure Redlib with a configuration file named `redlib.toml`. For example:
+Or via a `redlib.toml` file:
 
 ```toml
 REDLIB_DEFAULT_WIDE = "on"
@@ -381,49 +220,39 @@ REDLIB_DEFAULT_USE_HLS = "on"
 ```
 
 > [!NOTE]
-> If you're deploying Redlib using the **Docker CLI or Docker Compose**, environment variables can be defined in a [`.env` file](https://docs.docker.com/compose/environment-variables/set-environment-variables/), allowing you to centralize and manage configuration in one place.
->
-> To configure Redlib using a `.env` file, copy the `.env.example` file to `.env` and edit it accordingly.
->
-> If using the Docker CLI, add ` --env-file .env` to the command that runs Redlib. For example:
->
-> ```bash
-> docker run -d --name redlib -p 8080:8080 --env-file .env quay.io/redlib/redlib:latest
-> ```
->
-> If using Docker Compose, no changes are needed as the `.env` file is already referenced in `compose.yaml` via the `env_file: .env` line.
+> With Docker CLI or Compose, copy `.env.example` to `.env` and edit it. Docker CLI: add `--env-file .env`. Compose already references it via `env_file: .env` in `compose.yaml`.
 
 ## Command Line Flags
-
-Redlib supports the following command line flags:
 
 - `-4`, `--ipv4-only`: Listen on IPv4 only.
 - `-6`, `--ipv6-only`: Listen on IPv6 only.
 - `-r`, `--redirect-https`: Redirect all HTTP requests to HTTPS (no longer functional).
-- `-a`, `--address <ADDRESS>`: Sets address to listen on. Default is `[::]`.
-- `-p`, `--port <PORT>`: Port to listen on. Default is `8080`.
-- `-H`, `--hsts <EXPIRE_TIME>`: HSTS header to tell browsers that this site should only be accessed over HTTPS. Default is `604800`.
+- `-a`, `--address <ADDRESS>`: Address to listen on. Default `[::]`.
+- `-p`, `--port <PORT>`: Port to listen on. Default `8080`.
+- `-H`, `--hsts <EXPIRE_TIME>`: HSTS max-age header. Default `604800`.
 
 ## Instance settings
 
-Assign a default value for each instance-specific setting by passing environment variables to Redlib in the format `REDLIB_{X}`. Replace `{X}` with the setting name (see list below) in capital letters.
+Set with `REDLIB_{X}`:
 
-| Name                      | Possible values | Default value          | Description                                                                                               |
-|---------------------------|-----------------|------------------------|-----------------------------------------------------------------------------------------------------------|
-| `SFW_ONLY`                | `["on", "off"]` | `off`                  | Enables SFW-only mode for the instance, i.e. all NSFW content is filtered.                                |
-| `BANNER`                  | String          | (empty)                | Allows the server to set a banner to be displayed. Currently this is displayed on the instance info page. |
-| `ROBOTS_DISABLE_INDEXING` | `["on", "off"]` | `off`                  | Disables indexing of the instance by search engines.                                                      |
-| `PUSHSHIFT_FRONTEND`      | String          | `undelete.pullpush.io` | Allows the server to set the Pushshift frontend to be used with "removed" links.                          |
-| `PORT`                    | Integer 0-65535 | `8080`                 | The **internal** port Redlib listens on.                                                                  |
-| `ENABLE_RSS`              | `["on", "off"]` | `off`                  | Enables RSS feed generation.                                                                              |
-| `FULL_URL`                | String          | (empty)                | Allows for proper URLs (for now, only needed by RSS)                                                      |
+| Name                      | Possible values | Default value          | Description                                                                                                |
+|---------------------------|------------------|-------------------------|-------------------------------------------------------------------------------------------------------------|
+| `SFW_ONLY`                | `["on", "off"]`  | `off`                   | Enables SFW-only mode for the instance, filtering all NSFW content.                                         |
+| `BANNER`                  | String           | (empty)                 | Banner message displayed on the instance info page.                                                          |
+| `ROBOTS_DISABLE_INDEXING` | `["on", "off"]`  | `off`                   | Disables indexing of the instance by search engines.                                                         |
+| `PUSHSHIFT_FRONTEND`      | String           | `undelete.pullpush.io`  | Pushshift frontend used for "removed" links.                                                                 |
+| `PORT`                    | Integer 0-65535  | `8080`                  | The **internal** port Redlib listens on.                                                                     |
+| `ENABLE_RSS`              | `["on", "off"]`  | `off`                   | Enables RSS feed generation.                                                                                 |
+| `FULL_URL`                | String           | (empty)                 | Full base URL, currently only needed for RSS.                                                                |
+| `ENABLE_JSON_API`         | `["on", "off"]`  | `off`                   | Exposes the read-only JSON API at `/api/reddit/*`. See [JSON API](#json-api).                                |
+| `API_CORS_ORIGIN`         | String           | (empty)                 | `Access-Control-Allow-Origin` value for `/api/reddit/*`. Unset means no CORS header (same-origin only).      |
 
 ## Default user settings
 
-Assign a default value for each user-modifiable setting by passing environment variables to Redlib in the format `REDLIB_DEFAULT_{Y}`. Replace `{Y}` with the setting name (see list below) in capital letters.
+Set with `REDLIB_DEFAULT_{Y}`:
 
 | Name                                | Possible values                                                                                                                                                                                                                 | Default value |
-|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+|-------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
 | `THEME`                             | `["system", "light", "dark", "black", "dracula", "nord", "laserwave", "violet", "gold", "rosebox", "gruvboxdark", "gruvboxlight", "tokyoNight", "icebergDark", "doomone", "libredditBlack", "libredditDark", "libredditLight"]` | `system`      |
 | `FRONT_PAGE`                        | `["default", "popular", "all"]`                                                                                                                                                                                                 | `default`     |
 | `LAYOUT`                            | `["card", "clean", "compact", "voyager"]`                                                                                                                                                                                       | `card`        |
@@ -444,38 +273,60 @@ Assign a default value for each user-modifiable setting by passing environment v
 | `FIXED_NAVBAR`                      | `["on", "off"]`                                                                                                                                                                                                                 | `on`          |
 | `REMOVE_DEFAULT_FEEDS`              | `["on", "off"]`                                                                                                                                                                                                                 | `off`         |
 
+## Voyager layout & PWA
+
+Set `voyager` as the layout (per-user in Settings, or instance-wide via `REDLIB_DEFAULT_LAYOUT=voyager`) to get a mobile-first, Apollo/Voyager-inspired skin: a sticky top bar, a bottom tab bar (Home/Popular/All/Search/Settings), and inline comment scores. It's purely presentational — CSS and template conditionals scoped to `body.voyager` — and doesn't change routing, data, or behavior for other layouts.
+
+Regardless of layout, the instance registers a service worker (`/sw.js`) and serves a web app manifest (`/manifest.json`), so the site can be installed and used offline:
+
+- Static assets (CSS/JS/fonts/icons) are cached and revalidated in the background.
+- Proxied media (`/img`, `/thumb`, `/preview`, etc.) is cached as immutable, content-addressed data, capped in size.
+- HTML navigations are network-first (preferences live in cookies, so a stale cached page could show the wrong theme/feed) with an offline fallback page (`/offline.html`).
+- Cache names include the crate version, so each release prunes old caches on activation.
+
+No configuration is required to enable the PWA layer; it's part of the base install.
+
+## JSON API
+
+`GET /api/reddit/*path` forwards `path` (plus query string) to Reddit as `https://reddit's-oauth-endpoint/{path}.json`, through this instance's existing `client::json`, inheriting its OAuth token, rate-limit accounting, and retry behavior. The browser never talks to Reddit directly.
+
+- **Disabled by default.** Set `REDLIB_ENABLE_JSON_API=on` to enable it.
+- **Allowlisted, not an open proxy.** Only these path prefixes are forwarded: `r/`, `user/`, `comments/`, `subreddits/`, `api/info`, `by_id/`, `search`, `duplicates/`, `api/morechildren`. Path traversal (`..`) and absolute paths are rejected.
+- **Rate limit cost.** This serves the same public data the HTML frontend already renders, but it's far easier to script against, so it's opt-in and spends the instance's Reddit rate limit like any other request.
+- **CORS.** Unset by default (same-origin only). Set `REDLIB_API_CORS_ORIGIN` to a single origin (e.g. `http://localhost:5173`) to allow a separate frontend to call it directly; `OPTIONS` preflight is handled automatically when an origin is configured.
+- **No response translation.** Responses are raw Reddit JSON; mapping to a client's own types is left to that client.
+
+This exists as groundwork for building a JS-based frontend against a Redlib instance (e.g. one using the raw numeric fields Reddit returns, rather than the pre-formatted strings the HTML templates render) without that frontend needing its own Reddit credentials.
+
 ## Forward Proxies
 
-Redlib [supports](https://docs.rs/wreq/latest/wreq/#proxies) proxy usage using the standard `HTTP_PROXY` and
-`HTTPS_PROXY` environment variables. Use `ALL_PROXY` to set both at the same time (which you want to do).
+Redlib [supports](https://docs.rs/wreq/latest/wreq/#proxies) proxy usage via the standard `HTTP_PROXY` and `HTTPS_PROXY` environment variables. Use `ALL_PROXY` to set both at once.
 
-- `http://` is the scheme for http proxy
-- `https://` is the scheme for https proxy
-- `socks4://` is the scheme for socks4 proxy
-- `socks4a://` is the scheme for socks4a proxy
-- `socks5://` is the scheme for socks5 proxy
-- `socks5h://` is the scheme for socks5h proxy
+- `http://` — HTTP proxy
+- `https://` — HTTPS proxy
+- `socks4://` / `socks4a://` — SOCKS4(a) proxy
+- `socks5://` / `socks5h://` — SOCKS5(h) proxy
 
-## Security
+---
 
-This project uses [BoringSSL](https://boringssl.googlesource.com/boringssl/), built from source with patches from
-the [wreq](https://github.com/0x676e67/wreq) project. Certificates are validated against the embedded trust store from Mozilla.
+# Security
 
-## Building
+This project uses [BoringSSL](https://boringssl.googlesource.com/boringssl/), built from source with patches from the [wreq](https://github.com/0x676e67/wreq) project. Certificates are validated against the embedded Mozilla trust store.
 
-Since Redlib uses [`boring-sys2`](https://crates.io/crates/boring-sys2), to build Redlib you will need to build
-BoringSSL from source.
+# Building
 
-### Linux/MacOS
+Redlib uses [`boring-sys2`](https://crates.io/crates/boring-sys2), so building it requires building BoringSSL from source.
 
-Refer to the [boringssl](https://github.com/google/boringssl/blob/main/BUILDING.md) documentation for dependencies.
+## Linux/macOS
 
-### Windows
+See the [BoringSSL build docs](https://github.com/google/boringssl/blob/main/BUILDING.md) for dependencies.
 
-Install MSVC, which you likely already have for Rust.
+## Windows
+
+Install MSVC (likely already present for Rust), then:
 
 ```pwsh
-# Make sure to update your PATH, some of the installers don't do that by default (hense -i, interactive mode).
+# Make sure to update your PATH; some installers don't do that by default, hence -i (interactive mode).
 winget install -i Kitware.CMake
 winget install -i NASM.NASM
 winget install -i LLVM.LLVM
