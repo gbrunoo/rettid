@@ -2,7 +2,7 @@
 
 > A private front-end to Reddit. Forked from [Redlib](https://github.com/redlib-org/redlib), which itself has its origins in [Libreddit](https://github.com/libreddit/libreddit).
 
-![screenshot](https://i.ibb.co/18vrdxk/redlib-rust.png)
+![screenshot](static/UI.png)
 
 ---
 
