@@ -192,7 +192,12 @@ nav.fixed_navbar {
 nav * {
     color: var(--text);
 }
-nav #red,
+/* Reddit's brand orange, fixed rather than theme-derived so the logo reads
+   consistently across every theme, including the ones that repurpose
+   --accent for something else. */
+nav #red {
+    color: #FF4500;
+}
 #code > span {
     color: var(--accent);
 }
