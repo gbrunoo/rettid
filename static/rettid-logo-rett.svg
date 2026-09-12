@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" width="800" height="300">
+  <!-- Optional black rounded background for icon use -->
+  <!-- <rect width="800" height="300" rx="40" ry="40" fill="#000000"/> -->
+
+  <!-- "rett" wordmark - Reddit Sans style, bold, orange -->
+  <text
+    x="400"
+    y="195"
+    font-family="'Reddit Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="220"
+    font-weight="900"
+    letter-spacing="-8"
+    fill="#FF4500"
+    text-anchor="middle"
+    dominant-baseline="middle"
+  >rett</text>
+</svg>

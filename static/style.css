@@ -229,6 +229,14 @@ nav #rettid {
     vertical-align: -2px;
 }
 
+nav #rettid img {
+    display: block;
+    height: 28px;
+    width: auto;
+    vertical-align: middle;
+    margin: 4px 0;
+}
+
 /* The reddit_link icon becomes a subreddit's own icon image when a specific
    subreddit is open (see the nav_icon block override in subreddit.html).
    Sized and cropped like the other nav icons it sits beside. */

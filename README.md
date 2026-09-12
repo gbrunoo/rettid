@@ -1,5 +1,9 @@
 # Rettid
 
+<p align="center">
+  <img src="static/rettid-logo-white.png" alt="Rettid logo" width="420">
+</p>
+
 > **A Reddit front-end that feels like a native mobile app — private, adless, and installable.**
 >
 > Rettid is a fork of [Redlib](https://github.com/redlib-org/redlib) (itself descended from [Libreddit](https://github.com/libreddit/libreddit)). It keeps Redlib's privacy guarantees and adds the mobile experience Redlib deliberately doesn't ship.
