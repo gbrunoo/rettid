@@ -56,7 +56,10 @@
 		<nav class="
 			{% if prefs.fixed_navbar == "on" %} fixed_navbar{% endif %}">
 			<div id="logo">
-				                    <a id="rettid" href="/"><img src="/rettid-logo-white.png" alt="Rettid" height="28"></a>
+				                    <a id="rettid" href="/">
+				                        <img src="/rettid-logo-white.png" alt="Rettid" class="logo-dark" height="28">
+				                        <img src="/rettid-logo-black.png" alt="Rettid" class="logo-light" height="28">
+				                    </a>
 				{% block subscriptions %}{% endblock %}
 			</div>
 			{% block search %}{% endblock %}
