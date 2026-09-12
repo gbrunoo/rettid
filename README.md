@@ -127,7 +127,7 @@ The motivating use case: the HTML templates render scores and timestamps as pre-
 # Quick start
 
 ```bash
-git clone https://github.com/gbrunoo/redlib-revamped && cd redlib-revamped
+git clone https://github.com/gbrunoo/rettid && cd rettid
 cargo run
 ```
 
@@ -204,7 +204,7 @@ Before=nginx.service
 ## Building from source
 
 ```bash
-git clone https://github.com/gbrunoo/redlib-revamped && cd redlib-revamped
+git clone https://github.com/gbrunoo/rettid && cd rettid
 cargo build --release
 ```
 

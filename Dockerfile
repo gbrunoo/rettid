@@ -4,7 +4,7 @@ ARG TARGET
 
 RUN apk add --no-cache curl
 
-RUN curl -L "https://github.com/gbrunoo/redlib-revamped/releases/latest/download/rettid-${TARGET}.tar.gz" | \
+RUN curl -L "https://github.com/gbrunoo/rettid/releases/latest/download/rettid-${TARGET}.tar.gz" | \
     tar xz -C /usr/local/bin/
 
 RUN adduser --home /nonexistent --no-create-home --disabled-password rettid

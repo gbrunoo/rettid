@@ -186,7 +186,7 @@ async fn main() {
 			let mut message = format!("Rate limit check failed: {e}");
 			message += "\nThis may cause issues with the rate limit.";
 			message += "\nPlease report this error with the above information.";
-			message += "\nhttps://github.com/gbrunoo/redlib-revamped/issues/new?labels=bug&title=%F0%9F%90%9B+Bug+Report%3A+Rate+limit+mismatch";
+			message += "\nhttps://github.com/gbrunoo/rettid/issues/new?labels=bug&title=%F0%9F%90%9B+Bug+Report%3A+Rate+limit+mismatch";
 			warn!("{}", message);
 			eprintln!("{message}");
 		}
@@ -468,7 +468,7 @@ pub async fn proxy_commit_info() -> Result<Response<Body>, String> {
 
 #[cached(time = 600)]
 async fn fetch_commit_info() -> String {
-	let url = "https://github.com/gbrunoo/redlib-revamped/commits/main.atom";
+	let url = "https://github.com/gbrunoo/rettid/commits/main.atom";
 
 	CLIENT.get(url).send().await.expect("Failed to request GitHub").text().await.expect("Failed to read body")
 }

@@ -2,7 +2,7 @@
 name = "rettid"
 description = " Alternative private front-end to Reddit"
 license = "AGPL-3.0-only"
-repository = "https://github.com/gbrunoo/redlib-revamped"
+repository = "https://github.com/gbrunoo/rettid"
 version = "0.36.0"
 authors = [
     "Matthew Esposito <matt+cargo@matthew.science>",
