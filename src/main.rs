@@ -241,9 +241,7 @@ async fn main() {
 
 	// Read static files
 	app.at("/style.css").get(|_| style().boxed());
-	app
-		.at("/voyager.css")
-		.get(|_| resource(include_str!("../static/voyager.css"), "text/css", true).boxed());
+	app.at("/voyager.css").get(|_| resource(include_str!("../static/voyager.css"), "text/css", true).boxed());
 	// PWA: the worker is served from the root so its scope covers the whole origin.
 	app.at("/sw.js").get(|_| service_worker().boxed());
 	app

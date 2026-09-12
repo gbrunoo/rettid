@@ -25,14 +25,14 @@ use hyper::{Body, Request, Response, StatusCode};
 /// listings and comment threads, and stops the endpoint being used to reach
 /// arbitrary Reddit endpoints with the instance's credentials.
 const ALLOWED_PREFIXES: [&str; 9] = [
-	"r/",           // subreddit listings, comments, about, search
-	"user/",        // profile listings
-	"comments/",    // permalinks without a subreddit
-	"subreddits/",  // subreddit discovery
-	"api/info",     // lookup by fullname
-	"by_id/",       // lookup by fullname
-	"search",       // site-wide search
-	"duplicates/",  // other discussions
+	"r/",               // subreddit listings, comments, about, search
+	"user/",            // profile listings
+	"comments/",        // permalinks without a subreddit
+	"subreddits/",      // subreddit discovery
+	"api/info",         // lookup by fullname
+	"by_id/",           // lookup by fullname
+	"search",           // site-wide search
+	"duplicates/",      // other discussions
 	"api/morechildren", // "load more comments" expansion
 ];
 
@@ -76,14 +76,7 @@ fn error(status: StatusCode, message: &str) -> Response<Body> {
 
 /// Preflight handler, needed once a CORS origin is configured.
 pub async fn preflight(_req: Request<Body>) -> Result<Response<Body>, String> {
-	Ok(
-		with_cors(
-			Response::builder()
-				.status(StatusCode::NO_CONTENT)
-				.body(Body::empty())
-				.unwrap_or_default(),
-		),
-	)
+	Ok(with_cors(Response::builder().status(StatusCode::NO_CONTENT).body(Body::empty()).unwrap_or_default()))
 }
 
 /// `GET /api/reddit/*path` — forward `path` (plus query string) to Reddit.
@@ -113,18 +106,16 @@ pub async fn reddit_json(req: Request<Body>) -> Result<Response<Body>, String> {
 	let upstream = format!("/{path}.json{separator}{query}");
 
 	match json(upstream, false).await {
-		Ok(value) => Ok(
-			with_cors(
-				Response::builder()
-					.status(StatusCode::OK)
-					.header("content-type", "application/json")
-					// Short cache: feeds move fast, but this absorbs the
-					// duplicate requests a client makes while navigating.
-					.header("Cache-Control", "public, max-age=30")
-					.body(value.to_string().into())
-					.unwrap_or_default(),
-			),
-		),
+		Ok(value) => Ok(with_cors(
+			Response::builder()
+				.status(StatusCode::OK)
+				.header("content-type", "application/json")
+				// Short cache: feeds move fast, but this absorbs the
+				// duplicate requests a client makes while navigating.
+				.header("Cache-Control", "public, max-age=30")
+				.body(value.to_string().into())
+				.unwrap_or_default(),
+		)),
 		Err(msg) => Ok(error(StatusCode::BAD_GATEWAY, &msg)),
 	}
 }
