@@ -220,12 +220,24 @@ nav #links {
     justify-content: flex-end;
 }
 
-nav #links svg {
+nav #links svg,
+nav #links img#reddit_link_icon {
     display: none;
 }
 
 nav #rettid {
     vertical-align: -2px;
+}
+
+/* The reddit_link icon becomes a subreddit's own icon image when a specific
+   subreddit is open (see the nav_icon block override in subreddit.html).
+   Sized and cropped like the other nav icons it sits beside. */
+#reddit_link_icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    vertical-align: middle;
 }
 
 figcaption {
@@ -1958,7 +1970,8 @@ th {
     nav #links span {
         display: none;
     }
-    nav #links svg {
+    nav #links svg,
+    nav #links img#reddit_link_icon {
         display: block;
     }
 

@@ -60,6 +60,7 @@
 			</div>
 			{% block search %}{% endblock %}
 			<div id="links">
+				{% block nav_icon %}
 				<a id="reddit_link" {% if prefs.disable_visit_reddit_confirmation != "on" %}href="#popup"{% else %}href="https://www.reddit.com{{ url }}" rel="nofollow"{% endif %}>
 					<span>reddit</span>
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -70,6 +71,7 @@
 				{% if prefs.disable_visit_reddit_confirmation != "on" %}
 					{% call utils::visit_reddit_confirmation(url) %}
 				{% endif %}
+				{% endblock %}
 				<a id="settings_link" href="/settings">
 					<span>settings</span>
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -121,7 +123,7 @@
 			<!-- Toggles the top bar's search form (see #searchbox / voyager.js).
 			     noscript fallback: a plain link to the /search page, so search
 			     stays reachable with JavaScript disabled. -->
-			<button type="button" id="tab_search_toggle" aria-label="Toggle search" aria-expanded="false" aria-controls="searchbox">
+			<button type="button" id="tab_search_toggle" aria-label="Toggle search" aria-expanded="{% if url.starts_with("/search") %}true{% else %}false{% endif %}" aria-controls="searchbox">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 					<circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/>
 				</svg>

@@ -168,6 +168,15 @@ body.voyager nav #links a svg {
 	stroke-width: 1.9;
 }
 
+/* The subreddit-icon variant of reddit_link (see subreddit.html's nav_icon
+   override) is an <img>, not an <svg>; match the same footprint. */
+body.voyager nav #links a img#reddit_link_icon {
+	width: 21px;
+	height: 21px;
+	border-radius: 50%;
+	object-fit: cover;
+}
+
 body.voyager nav #links a:active {
 	background: var(--v-faint);
 }
@@ -183,9 +192,11 @@ body.voyager nav #feeds {
 }
 
 /* Settings is also one tap away from the bottom tab bar, so the top bar's
-   cog icon is redundant in this layout. */
+   cog icon is redundant in this layout. !important guards this against any
+   width-specific override elsewhere in the cascade, since this removal is
+   intentional at every viewport size, not just some of them. */
 body.voyager nav #settings_link {
-	display: none;
+	display: none !important;
 }
 
 /* The base sheet's max-width:800px block nests offsets inside
@@ -895,6 +906,19 @@ body.voyager nav:not(#v_tabbar):not(.search_open) #searchbox {
 	display: none;
 }
 
+/* #searchbox sits between #logo and #links in the DOM (base.html renders
+   {% block search %} there), and it is width:100%, which forces a flex
+   wrap. Without `order`, that wrap lands it between logo and links — its
+   DOM position — splitting the bar into three stacked rows instead of
+   logo+links on row one and search on its own row below. `order` makes it
+   render last regardless of DOM position, and the padding reattaches it
+   visually to the row above rather than reading as a separate section. */
+body.voyager nav:not(#v_tabbar).search_open #searchbox {
+	order: 3;
+	padding-top: 0;
+	padding-bottom: 6px;
+}
+
 /* The tab bar's Search icon is a <button> that toggles the form above,
    rather than a link; the shared a/button rules below give it identical
    layout and typography, and treat aria-expanded="true" the same as the
@@ -1240,9 +1264,18 @@ body.voyager #v_tabbar button svg {
 	stroke-width: 1.8;
 }
 
+/* Colour alone (var(--accent) on a near-black background) read too subtly
+   as a "you are here" indicator. Selected tabs get a translucent rounded
+   highlight behind the whole icon+label, in Reddit's brand orange (the
+   same #FF4500 as the "rett" logo mark, rather than the theme's --accent,
+   so it reads consistently across every theme) plus a bolder label. */
 body.voyager #v_tabbar a.selected,
 body.voyager #v_tabbar button[aria-expanded="true"] {
-	color: var(--accent);
+	margin: 3px 2px;
+	border-radius: var(--v-radius);
+	background: color-mix(in srgb, #FF4500 16%, transparent);
+	color: #FF4500;
+	font-weight: 700;
 }
 
 body.voyager #v_tabbar a:active,

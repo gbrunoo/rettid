@@ -1,5 +1,5 @@
 {
-  description = "Redlib: Private front-end for Reddit";
+  description = "Rettid: Private front-end for Reddit";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -39,7 +39,7 @@
             (craneLib.filterCargoSources path type);
         };
 
-        redlib = craneLib.buildPackage {
+        rettid = craneLib.buildPackage {
           inherit src;
           strictDeps = true;
           doCheck = false;
@@ -50,16 +50,16 @@
       in
       {
         checks = {
-          my-crate = redlib;
+          rettid = rettid;
         };
 
-        packages.default = redlib;
+        packages.default = rettid;
         packages.docker = pkgs.dockerTools.buildImage {
-          name = "quay.io/redlib/redlib";
+          name = "docker.io/gab360/rettid";
           tag = "latest";
           created = "now";
           copyToRoot = with pkgs.dockerTools; [ caCertificates fakeNss ];
-          config.Cmd = "${redlib}/bin/redlib";
+          config.Cmd = "${rettid}/bin/rettid";
         };
       });
 }
