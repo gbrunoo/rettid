@@ -248,6 +248,9 @@ async fn main() {
 		.at("/register_sw.js")
 		.get(|_| resource(include_str!("../static/register_sw.js"), "text/javascript", false).boxed());
 	app
+		.at("/voyager.js")
+		.get(|_| resource(include_str!("../static/voyager.js"), "text/javascript", false).boxed());
+	app
 		.at("/offline.html")
 		.get(|_| resource(include_str!("../static/offline.html"), "text/html; charset=utf-8", false).boxed());
 	app

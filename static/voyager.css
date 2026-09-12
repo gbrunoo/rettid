@@ -182,6 +182,12 @@ body.voyager nav #feeds {
 	display: none;
 }
 
+/* Settings is also one tap away from the bottom tab bar, so the top bar's
+   cog icon is redundant in this layout. */
+body.voyager nav #settings_link {
+	display: none;
+}
+
 /* The base sheet's max-width:800px block nests offsets inside
    `body.fixed_navbar` to push content clear of the fixed navbar
    (`div.post.highlighted { margin-top: 49px }` and friends). This layout's bar
@@ -878,15 +884,29 @@ body.voyager #comment_count {
  * Search
  * ------------------------------------------------------------------ */
 
-/* The top bar's search form is dropped entirely in this layout: the bottom
-   tab bar's Search icon (which links to /search) is the only search entry
-   point. Scoped to the top bar specifically (`nav:not(#v_tabbar)`), not
-   `#searchbox` alone, so this can't accidentally affect anything else that
-   reuses ids/classes from the search macro, such as the standalone search
-   results page (templates/search.html, which needs its own query box to
-   stay visible and usable) or the in-page comment search on post pages. */
-body.voyager nav:not(#v_tabbar) #searchbox {
+/* The top bar's search form is hidden by default and revealed by tapping the
+   Search icon in the bottom tab bar (voyager.js toggles `.search_open` on
+   this <nav>). Scoped to the top bar specifically (`nav:not(#v_tabbar)`),
+   not `#searchbox` alone, so this can't accidentally affect anything else
+   that reuses ids/classes from the search macro, such as the standalone
+   search results page (templates/search.html, which needs its own query box
+   to stay visible and usable) or the in-page comment search on post pages. */
+body.voyager nav:not(#v_tabbar):not(.search_open) #searchbox {
 	display: none;
+}
+
+/* The tab bar's Search icon is a <button> that toggles the form above,
+   rather than a link; the shared a/button rules below give it identical
+   layout and typography, and treat aria-expanded="true" the same as the
+   other icons' .selected while it's open.
+   The <noscript> fallback link is only present in markup when JavaScript
+   is disabled, in which case the browser renders it and the button above
+   is inert — no JS or extra markup is needed to reconcile the two. */
+body.voyager #v_tabbar button {
+	background: none;
+	border: none;
+	font: inherit;
+	cursor: pointer;
 }
 
 /* "in /r/subreddit" must not compete with the input for space. */
@@ -1197,7 +1217,8 @@ body.voyager #v_tabbar {
 	}
 }
 
-body.voyager #v_tabbar a {
+body.voyager #v_tabbar a,
+body.voyager #v_tabbar button {
 	display: flex;
 	flex: 1 1 0;
 	flex-direction: column;
@@ -1212,17 +1233,20 @@ body.voyager #v_tabbar a {
 	text-decoration: none;
 }
 
-body.voyager #v_tabbar a svg {
+body.voyager #v_tabbar a svg,
+body.voyager #v_tabbar button svg {
 	width: 23px;
 	height: 23px;
 	stroke-width: 1.8;
 }
 
-body.voyager #v_tabbar a.selected {
+body.voyager #v_tabbar a.selected,
+body.voyager #v_tabbar button[aria-expanded="true"] {
 	color: var(--accent);
 }
 
-body.voyager #v_tabbar a:active {
+body.voyager #v_tabbar a:active,
+body.voyager #v_tabbar button:active {
 	opacity: 0.5;
 }
 
