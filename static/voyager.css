@@ -878,29 +878,15 @@ body.voyager #comment_count {
  * Search
  * ------------------------------------------------------------------ */
 
-body.voyager #searchbox {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	box-sizing: border-box;
-	width: 100%;
-	max-width: 100%;
-	min-width: 0;
-	margin: 0;
-	padding: 8px calc(var(--v-gutter) + var(--v-safe-right)) 8px
-		calc(var(--v-gutter) + var(--v-safe-left));
-	border: none;
-	background: none;
-	box-shadow: none;
-	grid-area: unset;
-}
-
-/* Inside the top bar it takes a full row of its own, below logo and links. */
+/* The top bar's search form is dropped entirely in this layout: the bottom
+   tab bar's Search icon (which links to /search) is the only search entry
+   point. Scoped to the top bar specifically (`nav:not(#v_tabbar)`), not
+   `#searchbox` alone, so this can't accidentally affect anything else that
+   reuses ids/classes from the search macro, such as the standalone search
+   results page (templates/search.html, which needs its own query box to
+   stay visible and usable) or the in-page comment search on post pages. */
 body.voyager nav:not(#v_tabbar) #searchbox {
-	flex: 1 1 100%;
-	order: 3;
-	padding-top: 0;
-	padding-bottom: 6px;
+	display: none;
 }
 
 /* "in /r/subreddit" must not compete with the input for space. */
