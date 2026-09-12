@@ -33,7 +33,7 @@ Everything Redlib already did well is inherited unchanged: Rust, no tracking, se
 - ⚙️ **Drop-in** — same env vars, same config file format, same routes
 
 > [!NOTE]
-> **Scope and status.** This is a personally maintained fork for self-hosting. It isn't listed in the public Redlib instance directory, doesn't publish prebuilt binaries or container images, and the changes here aren't intended to be upstreamed as-is — they run counter to Redlib's no-JS philosophy by design. If you want vanilla Redlib, use [upstream](https://github.com/redlib-org/redlib); it's the better choice for that.
+> **Scope and status.** This is a personally maintained fork for self-hosting. It isn't listed in the public Redlib instance directory, and the changes here aren't intended to be upstreamed as-is — they run counter to Redlib's no-JS philosophy by design. If you want vanilla Redlib, use [upstream](https://github.com/redlib-org/redlib); it's the better choice for that. Container images are published to [Docker Hub](https://hub.docker.com/r/gab360/rettid); prebuilt binaries are not.
 
 ---
 
@@ -140,27 +140,54 @@ Then open <http://localhost:8080> and set **Settings → Layout → voyager** to
 
 # Deployment
 
-Docker is the easiest path for a long-running instance. Since this fork publishes no images or binaries, every route below builds from source.
+Docker is the easiest path for a long-running instance.
 
 ## Docker
 
-Build your own image from the provided Dockerfiles:
+Images are published to Docker Hub for `linux/amd64` and `linux/arm64`:
 
 ```bash
-docker build -f Dockerfile.alpine -t rettid .
-docker run -d --name rettid -p 8080:8080 --env-file .env rettid
+docker run -d --name rettid -p 8080:8080 gab360/rettid:latest
 ```
 
-Behind a reverse proxy, bind to loopback instead: `-p 127.0.0.1:8080:8080`.
+Then open <http://localhost:8080>.
+
+With configuration, and bound to loopback for use behind a reverse proxy:
+
+```bash
+cp .env.example .env                      # then edit it
+docker run -d --name rettid -p 127.0.0.1:8080:8080 --env-file .env gab360/rettid:latest
+```
+
+Tags: `latest` tracks `main`; `X.Y.Z` and `X.Y` are published for release tags;
+`sha-<commit>` pins an exact build.
+
+### Building the image yourself
+
+```bash
+docker build -f Dockerfile.ubuntu -t rettid .
+docker run -d --name rettid -p 8080:8080 rettid
+```
+
+> [!IMPORTANT]
+> **Which Dockerfile to use.** `Dockerfile.ubuntu` builds natively on both `amd64`
+> and `arm64` (including Apple Silicon) and is the safe default.
+> `Dockerfile.alpine` produces a much smaller static image but hardcodes
+> `x86_64-unknown-linux-musl`, so on arm64 it only works under emulation.
+> The plain `Dockerfile` doesn't build anything — it downloads a release
+> tarball, which this fork doesn't publish, so it won't work as-is.
+
+Expect the first build to take a while: BoringSSL is compiled from source.
 
 ### Docker Compose
 
-`compose.yaml` is set up to build locally and read `.env`:
+`compose.yaml` pulls the published image, reads `.env`, and falls back to
+building locally if the image isn't available:
 
 ```bash
 cp .env.example .env   # edit as desired
 docker compose up -d
-docker logs -f rettid
+docker compose logs -f
 ```
 
 ## Podman
@@ -168,7 +195,7 @@ docker logs -f rettid
 A Quadlet unit is provided in `rettid.container`. Build the image first, then:
 
 ```bash
-podman build -f Dockerfile.alpine -t rettid .
+podman build -f Dockerfile.ubuntu -t rettid .
 cp rettid.container .env.example ~/.config/containers/systemd/
 systemctl --user daemon-reload
 systemctl --user start rettid.service

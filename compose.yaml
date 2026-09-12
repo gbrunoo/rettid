@@ -1,8 +1,12 @@
 services:
   rettid:
+    image: gab360/rettid:latest
+    # Falls back to building locally if the image isn't present.
+    # Dockerfile.ubuntu is architecture-neutral and builds natively on both
+    # amd64 and arm64; Dockerfile.alpine is smaller but x86_64-only.
     build:
       context: .
-      dockerfile: Dockerfile.alpine
+      dockerfile: Dockerfile.ubuntu
     restart: always
     container_name: "rettid"
     ports:

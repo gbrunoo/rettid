@@ -1,77 +1,100 @@
 name: Container build
 
+# Publishes multi-arch images to Docker Hub.
+#
+# Built from source with Dockerfile.ubuntu rather than from a release tarball:
+# the release workflow creates *draft* releases, and GitHub does not serve
+# draft assets from /releases/latest/download/, so a tarball-based build would
+# either fail or silently package the previous release.
+#
+# amd64 and arm64 are built on native runners. There is no native armv7 runner,
+# and this project compiles BoringSSL from source, so an emulated armv7 build
+# is impractically slow; that platform is intentionally not published.
+
 on:
-  workflow_run:
-    workflows: ["Release Build"]
-    types:
-      - completed
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+    paths-ignore:
+      - "*.md"
+      - "compose.*"
+  workflow_dispatch:
+
 env:
-  # TODO: this points at upstream Redlib's registry namespace and will fail
-  # to push without their QUAY_USERNAME/QUAY_ROBOT_TOKEN secrets. Point this
-  # at a registry namespace this fork actually owns (e.g. ghcr.io/gbrunoo/rettid)
-  # before relying on this workflow.
-  REGISTRY_IMAGE: quay.io/redlib/rettid
+  # Requires DOCKERHUB_USERNAME and DOCKERHUB_TOKEN repository secrets.
+  # The token is a Docker Hub access token, not the account password.
+  REGISTRY_IMAGE: docker.io/${{ vars.DOCKERHUB_NAMESPACE || 'gab360' }}/rettid
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { platform: linux/amd64, target: x86_64-unknown-linux-musl }
-          - { platform: linux/arm64, target: aarch64-unknown-linux-musl }
-          - { platform: linux/arm/v7, target: armv7-unknown-linux-musleabihf }
+          - { platform: linux/amd64, runner: ubuntu-latest }
+          - { platform: linux/arm64, runner: ubuntu-24.04-arm }
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Prepare platform pair
+        id: prep
+        run: echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_OUTPUT"
+        env:
+          platform: ${{ matrix.platform }}
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY_IMAGE }}
-          tags: |
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Login to Quay.io Container Registry
+
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
-      - name: Build and push
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push by digest
         id: build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile.ubuntu
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
-          file: Dockerfile
-          build-args: TARGET=${{ matrix.target }}
+          # Compiling BoringSSL is the bulk of the build time; cache it per platform.
+          cache-from: type=gha,scope=${{ steps.prep.outputs.PLATFORM_PAIR }}
+          cache-to: type=gha,mode=max,scope=${{ steps.prep.outputs.PLATFORM_PAIR }}
+
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
           digest="${{ steps.build.outputs.digest }}"
           touch "/tmp/digests/${digest#sha256:}"
+
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ matrix.target }}
+          name: digests-${{ steps.prep.outputs.PLATFORM_PAIR }}
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
+
   merge:
     runs-on: ubuntu-latest
     needs:
       - build
     steps:
       - name: Download digests
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4
         with:
           path: /tmp/digests
           pattern: digests-*
@@ -79,34 +102,30 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
-      - name: Login to Quay.io Container Registry
+
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
-
-      # - name: Push README to Quay.io
-      #   uses: christian-korneck/update-container-description-action@v1
-      #   env:
-      #     DOCKER_APIKEY: ${{ secrets.APIKEY__QUAY_IO }}
-      #   with:
-      #     destination_container_repo: quay.io/redlib/rettid
-      #     provider: quay
-      #     readme_file: 'README.md'
 
       - name: Inspect image
         run: |

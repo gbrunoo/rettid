@@ -29,6 +29,12 @@ RUN echo "finished building rettid!"
 ########################
 FROM ubuntu:${UBUNTU_RELEASE_VERSION} AS release
 
+# The official Ubuntu image ships without wget, which the HEALTHCHECK below
+# depends on. Without this the container would always report unhealthy.
+RUN apt-get update \
+    && apt-get -y install --no-install-recommends wget \
+    && rm -rf /var/lib/apt/lists/*
+
 # Import rettid binary from builder
 COPY --from=builder /rettid/target/release/rettid /usr/local/bin/rettid
 
