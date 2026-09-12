@@ -162,7 +162,7 @@ docker run -d --name rettid -p 127.0.0.1:8080:8080 --env-file .env gab360/rettid
 Tags: `latest` tracks `main`; `X.Y.Z` and `X.Y` are published for release tags;
 `sha-<commit>` pins an exact build.
 
-### Building the image yourself
+### Building the image yourself 
 
 ```bash
 docker build -f Dockerfile.ubuntu -t rettid .
