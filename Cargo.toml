@@ -1,10 +1,13 @@
 [package]
 name = "rettid"
-description = " Alternative private front-end to Reddit"
+description = "Private, installable, mobile-first front-end to Reddit"
 license = "AGPL-3.0-only"
 repository = "https://github.com/gbrunoo/rettid"
 version = "0.36.0"
 authors = [
+    # Rettid fork
+    "Gabriel Bruno <242597616+gbrunoo@users.noreply.github.com>",
+    # Upstream Redlib / Libreddit
     "Matthew Esposito <matt+cargo@matthew.science>",
     "spikecodes <19519553+spikecodes@users.noreply.github.com>",
 ]
