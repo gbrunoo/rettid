@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Cache Packages
         uses: Swatinem/rust-cache@v2
@@ -30,8 +30,11 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Install musl-gcc
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends musl-tools git cmake perl pkg-config libclang-dev
+      - name: Install musl toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends musl-tools g++ git cmake perl pkg-config libclang-dev
+          sudo ln -sf /usr/bin/musl-gcc /usr/local/bin/x86_64-linux-musl-g++
 
       - name: Install cargo musl target
         run: rustup target add x86_64-unknown-linux-musl
@@ -51,19 +54,19 @@ jobs:
         run: cargo publish --no-verify --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
       - name: Calculate SHA512 checksum
-        run: sha512sum target/x86_64-unknown-linux-musl/release/redlib > redlib.sha512
+        run: sha512sum target/x86_64-unknown-linux-musl/release/rettid > rettid.sha512
 
       - name: Calculate SHA256 checksum
-        run: sha256sum target/x86_64-unknown-linux-musl/release/redlib > redlib.sha256
+        run: sha256sum target/x86_64-unknown-linux-musl/release/rettid > rettid.sha256
 
       - uses: actions/upload-artifact@v4
         name: Upload a Build Artifact
         with:
-          name: redlib
+          name: rettid
           path: |
-            target/x86_64-unknown-linux-musl/release/redlib
-            redlib.sha512
-            redlib.sha256
+            target/x86_64-unknown-linux-musl/release/rettid
+            rettid.sha512
+            rettid.sha256
         
 
       - name: Release
@@ -74,9 +77,9 @@ jobs:
           name: ${{ steps.version.outputs.VERSION }} - ${{ github.event.head_commit.message }}
           draft: true
           files: |
-            target/x86_64-unknown-linux-musl/release/redlib
-            redlib.sha512
-            redlib.sha256
+            target/x86_64-unknown-linux-musl/release/rettid
+            rettid.sha512
+            rettid.sha256
           body: |
             - ${{ github.event.head_commit.message }} ${{ github.sha }}
           generate_release_notes: true
