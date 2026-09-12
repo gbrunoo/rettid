@@ -147,44 +147,29 @@ body.voyager nav #links {
 	order: 2;
 }
 
-/* Icon-only actions in the bar, like a UINavigationBar. #search_toggle is a
-   <button>, everything else here is an <a>, so these rules target both. */
-body.voyager nav #links a,
-body.voyager nav #links button {
+/* Icon-only actions in the bar, like a UINavigationBar. */
+body.voyager nav #links a {
 	display: grid;
 	place-items: center;
 	width: 34px;
 	height: 34px;
 	padding: 0;
-	border: none;
 	border-radius: 50%;
-	background: none;
 	color: var(--accent);
-	cursor: pointer;
 }
 
-body.voyager nav #links a span,
-body.voyager nav #links button span {
+body.voyager nav #links a span {
 	display: none;
 }
 
-body.voyager nav #links a svg,
-body.voyager nav #links button svg {
+body.voyager nav #links a svg {
 	width: 21px;
 	height: 21px;
 	stroke-width: 1.9;
 }
 
-body.voyager nav #links a:active,
-body.voyager nav #links button:active {
+body.voyager nav #links a:active {
 	background: var(--v-faint);
-}
-
-/* Highlight the toggle while the search form is open, same treatment iOS
-   gives an active toolbar button. */
-body.voyager nav.search_open #search_toggle {
-	background: var(--v-faint);
-	color: var(--text);
 }
 
 /* The "Feeds" dropdown (Home/Popular/All/subscriptions) duplicates what the
@@ -916,15 +901,6 @@ body.voyager nav:not(#v_tabbar) #searchbox {
 	order: 3;
 	padding-top: 0;
 	padding-bottom: 6px;
-}
-
-/* Collapsible search: voyager.js marks the bar `.js_search` once it has run
-   and can actually handle the toggle button and outside-click/Escape
-   closing. Without that class — JS disabled or failed to load — the search
-   row stays exactly as visible as it always was; the toggle button, if
-   present, just does nothing rather than hiding the only way to search. */
-body.voyager nav.js_search:not(.search_open) #searchbox {
-	display: none;
 }
 
 /* "in /r/subreddit" must not compete with the input for space. */

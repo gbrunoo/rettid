@@ -11,6 +11,3 @@ result
 
 # Voyager frontend fork (its own git repo, tracked separately against upstream)
 /voyager-reddit/
-
-# macOS
-.DS_Store
