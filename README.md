@@ -66,11 +66,7 @@ Everything Redlib already did well is inherited unchanged: Rust, no tracking, se
 
 ## Voyager layout
 
-A mobile-first layout inspired by [Voyager for Lemmy](https://github.com/aeharding/voyager) and Apollo-era Reddit clients. Enable it per-user in **Settings → Layout → voyager**, or instance-wide:
-
-```bash
-REDLIB_DEFAULT_LAYOUT=voyager
-```
+A mobile-first layout inspired by [Voyager for Lemmy](https://github.com/aeharding/voyager) and Apollo-era Reddit clients. **This is Rettid's default** — both the Docker images and `contrib/rettid.conf` ship with `REDLIB_DEFAULT_LAYOUT=voyager` and `REDLIB_DEFAULT_THEME=voyagerDark` out of the box, since it's the whole point of this fork.
 
 What it changes:
 
@@ -81,6 +77,12 @@ What it changes:
 - Safe-area (notch) awareness and `theme-color` matching, so it looks right installed
 
 It is **purely presentational**. All CSS lives in `static/voyager.css` scoped to `body.voyager`, and the template changes are wrapped in `{% if prefs.layout == "voyager" %}` conditionals. Selecting `card`, `clean`, or `compact` gives you exactly upstream's rendering — this layout can't leak into them.
+
+To get upstream's classic desktop look instead, either switch it per-user in **Settings → Layout**, or override the instance default:
+
+```bash
+REDLIB_DEFAULT_LAYOUT=card REDLIB_DEFAULT_THEME=system
+```
 
 > [!TIP]
 > The tab bar only exists in the `voyager` layout. If you're on `card` and wondering where it went, that's expected.
@@ -131,7 +133,13 @@ git clone https://github.com/gbrunoo/rettid && cd rettid
 cargo run
 ```
 
-Then open <http://localhost:8080> and set **Settings → Layout → voyager** to see the mobile skin.
+Then open <http://localhost:8080>.
+
+To see the Voyager skin from a bare `cargo run` — the Docker image sets this for you, but a local build doesn't inherit it — either switch it in **Settings → Layout**, or start with:
+
+```bash
+REDLIB_DEFAULT_LAYOUT=voyager REDLIB_DEFAULT_THEME=voyagerDark cargo run
+```
 
 > [!IMPORTANT]
 > This project builds BoringSSL from source. See [Building & security notes](#building--security-notes) for prerequisites if the build fails.
@@ -291,6 +299,9 @@ Prefix each with `REDLIB_`:
 ## Default user settings
 
 Prefix each with `REDLIB_DEFAULT_`. These set the default; users can override them in Settings.
+
+> [!NOTE]
+> The "Default" column below is the binary's built-in fallback when nothing else is set — it's what you get from a bare `cargo build`/`cargo run`. Rettid's Docker images and `contrib/rettid.conf` set `LAYOUT=voyager` and `THEME=voyagerDark` explicitly, which take precedence over this table for anyone using them.
 
 | Name | Possible values | Default |
 |---|---|---|

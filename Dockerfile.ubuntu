@@ -46,6 +46,12 @@ RUN useradd \
     rettid
 USER rettid
 
+# Rettid's own default: voyager layout/theme out of the box. Override with
+# -e REDLIB_DEFAULT_LAYOUT=card (or any REDLIB_DEFAULT_* var) at `docker run`
+# time, or via env_file, to get upstream's classic look instead.
+ENV REDLIB_DEFAULT_LAYOUT=voyager
+ENV REDLIB_DEFAULT_THEME=voyagerDark
+
 # Document that we intend to expose port 8080 to whoever runs the container
 EXPOSE 8080
 
