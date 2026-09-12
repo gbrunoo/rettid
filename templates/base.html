@@ -60,6 +60,14 @@
 			</div>
 			{% block search %}{% endblock %}
 			<div id="links">
+				{% if prefs.layout == "voyager" %}
+				<button type="button" id="search_toggle" aria-label="Toggle search" aria-expanded="false" aria-controls="searchbox">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						<circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/>
+					</svg>
+					<span>search</span>
+				</button>
+				{% endif %}
 				<a id="reddit_link" {% if prefs.disable_visit_reddit_confirmation != "on" %}href="#popup"{% else %}href="https://www.reddit.com{{ url }}" rel="nofollow"{% endif %}>
 					<span>reddit</span>
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -135,5 +143,9 @@
 
 		<!-- PWA SERVICE WORKER -->
 		<script src="/register_sw.js" defer></script>
+		{% if prefs.layout == "voyager" %}
+		<!-- Collapsible search toggle (voyager layout only) -->
+		<script src="/voyager.js" defer></script>
+		{% endif %}
 	</body>
 </html>
